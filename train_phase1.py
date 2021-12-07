@@ -315,6 +315,8 @@ def main(data_dir,
             """
             Calculate correlation coefficient
             """
+            gt_qual = torch.cat(gt_qual).numpy()
+            pred_qual = torch.cat(pred_qual).numpy()
             plcc[phase], srcc[phase], krcc[phase] = calculate_correlation_coefficient(gt_qual, pred_qual)
 
         # Write logs by epoch

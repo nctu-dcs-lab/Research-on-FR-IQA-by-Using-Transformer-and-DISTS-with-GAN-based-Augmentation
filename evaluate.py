@@ -23,12 +23,10 @@ def calculate_correlation_coefficient(gt_qual, pred_qual):
            np.abs(kendalltau(gt_qual, pred_qual)[0])
 
 
-def evaluate(dataloader, model, mse_loss, dataset_size, device=torch.device('cpu')):
+def evaluate(dataloader, netD, mse_loss, dataset_size, device=torch.device('cpu')):
     gt_qual = []
     pred_qual = []
     epoch_loss = 0
-
-    model.eval()
 
     with tqdm(dataloader) as tepoch:
         for ref_imgs, dist_imgs, scores, _, origin_scores in tepoch:
@@ -40,7 +38,7 @@ def evaluate(dataloader, model, mse_loss, dataset_size, device=torch.device('cpu
             bs, ncrops, c, h, w = ref_imgs.size()
 
             with torch.no_grad():
-                pred_scores = model(ref_imgs.view(-1, c, h, w), dist_imgs.view(-1, c, h, w))
+                _, _, pred_scores = netD(ref_imgs.view(-1, c, h, w), dist_imgs.view(-1, c, h, w))
                 pred_scores_avg = pred_scores.view(bs, ncrops, -1).mean(1).view(-1)
                 loss = mse_loss(pred_scores_avg, scores)
 
@@ -67,14 +65,13 @@ def main(data_dir, netD_path, batch_size=16, num_workers=10):
     dataloaders, datasets_size = create_dataloaders(data_dir, batch_size=batch_size, num_workers=num_workers)
 
     # Set Up Model
-    netD = MultiTask(pretrained=True)
+    netD = MultiTask(pretrained=True).to(device)
     netD.load_state_dict(torch.load(netD_path))
-    netD = netD.to(device)
     netD.eval()
 
     mse_loss = nn.MSELoss()
 
-    epoch_loss, plcc, srcc, krcc = evaluate(dataloaders['test'], model, mse_loss, datasets_size['test'], device)
+    epoch_loss, plcc, srcc, krcc = evaluate(dataloaders['test'], netD, mse_loss, datasets_size['test'], device)
 
     print(f'Mean Square Error: {epoch_loss}')
     print(f'PLCC: {plcc}')
