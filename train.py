@@ -46,7 +46,13 @@ def train_phase1(dataloader,
         'inception_fake_pred': []
     }
 
-    result = {}
+    result = {
+        'real_clf': 0,
+        'real_qual': 0,
+        'fake_clf': 0,
+        'fake_qual': 0,
+        'cont': 0
+    }
 
     with tqdm(dataloader) as tepoch:
         for iteration, (ref_imgs, dist_imgs, scores, categories, origin_scores) in enumerate(tepoch):

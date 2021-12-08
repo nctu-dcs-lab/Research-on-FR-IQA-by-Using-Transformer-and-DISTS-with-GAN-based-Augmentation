@@ -29,7 +29,10 @@ def evaluate_phase1(dataloader, model, loss, dataset_size, device=torch.device('
         'pred_scores': [],
     }
 
-    result = {}
+    result = {
+        'real_clf': 0,
+        'real_qual': 0,
+    }
 
     for ref_imgs, dist_imgs, scores, categories, origin_scores in tqdm(dataloader):
         ref_imgs = ref_imgs.to(device)
