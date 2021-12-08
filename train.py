@@ -197,11 +197,11 @@ def train_phase1(dataloader,
     """
     Calculate FID score
     """
-    real_mu = np.mean(record['inception_real_pred'], axis=0)
-    fake_mu = np.mean(record['inception_fake_pred'], axis=0)
+    real_mu = np.mean(np.concatenate(record['inception_real_pred']), axis=0)
+    fake_mu = np.mean(np.concatenate(record['inception_fake_pred']), axis=0)
 
-    real_sigma = np.cov(record['inception_real_pred'], rowvar=False)
-    fake_sigma = np.cov(record['inception_fake_pred'], rowvar=False)
+    real_sigma = np.cov(np.concatenate(record['inception_real_pred']), rowvar=False)
+    fake_sigma = np.cov(np.concatenate(record['inception_fake_pred']), rowvar=False)
 
     result['FID'] = calculate_frechet_distance(real_mu, real_sigma, fake_mu, fake_sigma)
 
