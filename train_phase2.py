@@ -34,7 +34,10 @@ def main(netG_path,
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    dataloaders, datasets_sizes = create_dataloaders(data_dir, batch_size=batch_size, num_workers=num_workers)
+    dataloaders, datasets_sizes = create_dataloaders(data_dir,
+                                                     phase='phase2',
+                                                     batch_size=batch_size,
+                                                     num_workers=num_workers)
 
     # Set Up Model
     netG = Generator().to(device)
@@ -159,10 +162,9 @@ def main(netG_path,
 
 
 if __name__ == '__main__':
-    num_experiment = 16
     main(
-        netG_path=os.path.expanduser('~/nfs/result/acgan-dists/phase1/experiment16/models/netG_epoch50.pth'),
-        netD_path=os.path.expanduser('~/nfs/result/acgan-dists/phase1/experiment16/models/netD_epoch50.pth'),
+        netG_path=os.path.expanduser(''),
+        netD_path=os.path.expanduser(''),
         data_dir=Path('../data/PIPAL(processed)/'),
         log_dir='',
         save_model_dir='',
