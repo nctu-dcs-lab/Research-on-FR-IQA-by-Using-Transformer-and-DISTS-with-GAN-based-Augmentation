@@ -175,7 +175,7 @@ def train_phase1(dataloader,
                 'Loss_D': record['errD'],
                 'Loss_G': record['errG'],
                 'D(x)': record['D_x'],
-                'D(G(z))': f'{record["D_G_z1"]: .4f} /{record["D_G_z2"]: .4f}'
+                'D(G(z))': f'{record["D_G_z1"]: .4f}/{record["D_G_z2"]: .4f}'
             })
             if (start_iteration + iteration) % 100 == 0:
                 write_iteration_log(writer, record, start_iteration + iteration, loss_weight)
