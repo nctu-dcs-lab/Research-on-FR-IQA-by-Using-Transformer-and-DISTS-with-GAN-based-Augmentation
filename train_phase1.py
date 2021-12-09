@@ -55,7 +55,10 @@ def main(data_dir,
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    dataloaders, datasets_sizes = create_dataloaders(data_dir, batch_size=batch_size, num_workers=num_workers)
+    dataloaders, datasets_sizes = create_dataloaders(data_dir,
+                                                     phase='phase1',
+                                                     batch_size=batch_size,
+                                                     num_workers=num_workers)
 
     # Set Up Model
     model = {

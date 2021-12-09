@@ -9,8 +9,8 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision.transforms import transforms
 
 
-def transform(ref_img, dist_img, phase='train'):
-    if phase == 'train':
+def transform(ref_img, dist_img, mode='train', phase='phase1'):
+    if mode == 'train':
         # Random crop
         i, j, h, w = transforms.RandomCrop.get_params(ref_img, output_size=(192, 192))
         ref_img = TF.crop(ref_img, i, j, h, w)
@@ -33,7 +33,16 @@ def transform(ref_img, dist_img, phase='train'):
 
         return ref_img, dist_img
 
-    else:
+    elif mode == 'val' and phase == 'phase1':
+        ref_img = TF.center_crop(ref_img, 192)
+        dist_img = TF.center_crop(dist_img, 192)
+
+        ref_img = TF.normalize(TF.to_tensor(ref_img), [0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        dist_img = TF.normalize(TF.to_tensor(dist_img), [0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+
+        return ref_img, dist_img
+
+    elif mode == 'val' and phase == 'phase2':
         ref_imgs = TF.five_crop(ref_img, 192)
         dist_imgs = TF.five_crop(dist_img, 192)
 
@@ -50,7 +59,7 @@ def transform(ref_img, dist_img, phase='train'):
 
 
 class PIPAL(Dataset):
-    def __init__(self, root_dir, phase='train'):
+    def __init__(self, root_dir, mode='train', phase='phase1'):
         dist_type = {
             '00': 0,
             '01': 12,
@@ -64,7 +73,7 @@ class PIPAL(Dataset):
         label_dir = {'train': 'Train_Label', 'val': 'Val_Label', 'test': 'Test_Label'}
 
         dfs = []
-        for filename in (root_dir / label_dir[phase]).glob('*.txt'):
+        for filename in (root_dir / label_dir[mode]).glob('*.txt'):
             df = pd.read_csv(filename, index_col=None, header=None, names=['dist_img', 'score'])
             dfs.append(df)
 
@@ -82,6 +91,7 @@ class PIPAL(Dataset):
 
         self.df = df[['dist_img', 'ref_img']]
 
+        self.mode = mode
         self.phase = phase
 
     def __len__(self):
@@ -94,16 +104,17 @@ class PIPAL(Dataset):
         ref_img = Image.open(self.df['ref_img'].iloc[idx]).convert('RGB')
         dist_img = Image.open(self.df['dist_img'].iloc[idx]).convert('RGB')
 
-        ref_img, dist_img = transform(ref_img, dist_img, phase=self.phase)
+        ref_img, dist_img = transform(ref_img, dist_img, mode=self.mode, phase=self.phase)
 
         return ref_img, dist_img, self.scores[idx], self.categories[idx], self.origin_scores[idx]
 
 
-def create_dataloaders(data_dir, batch_size=16, num_workers=10):
+def create_dataloaders(data_dir, phase='phase1', batch_size=16, num_workers=10):
     # Dataset
     datasets = {
         x: PIPAL(root_dir=data_dir,
-                 phase=x)
+                 mode=x,
+                 phase=phase)
         for x in ['train', 'val', 'test']
     }
 

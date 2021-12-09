@@ -44,11 +44,10 @@ def evaluate_phase1(dataloader, model, loss, dataset_size, device=torch.device('
         bs, ncrops, c, h, w = ref_imgs.size()
 
         with torch.no_grad():
-            _, pred_categories, pred_scores = model['netD'](ref_imgs.view(-1, c, h, w), dist_imgs.view(-1, c, h, w))
-            pred_scores_avg = pred_scores.view(bs, ncrops, -1).mean(1).view(-1)
+            _, pred_categories, pred_scores = model['netD'](ref_imgs, dist_imgs)
 
             record['errD_real_adv'] = loss['ce_loss'](pred_categories, categories).item()
-            record['errD_real_clf'] = loss['mse_loss'](pred_scores_avg, scores).item()
+            record['errD_real_clf'] = loss['mse_loss'](pred_scores, scores).item()
 
         # Record original scores and predict scores
         record['gt_scores'].append(origin_scores)
