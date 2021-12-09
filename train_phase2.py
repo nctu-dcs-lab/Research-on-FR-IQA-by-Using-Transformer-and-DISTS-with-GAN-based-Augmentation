@@ -146,15 +146,15 @@ def main(netG_path,
             plcc[phase], srcc[phase], krcc[phase] = calculate_correlation_coefficient(gt_qual, pred_qual)
 
             print(f'{phase} loss: {epoch_loss[phase]}')
-        if log_dir:
-            writer.add_scalars('Loss', {'train_real': epoch_real_loss['train'],
-                                        'val_real': epoch_real_loss['val'],
-                                        'train_fake': epoch_fake_loss['train'],
-                                        'val_fake': epoch_fake_loss['val']}, epoch + 1)
-            writer.add_scalars('PLCC', {x: plcc[x] for x in ['train', 'val']}, epoch + 1)
-            writer.add_scalars('SRCC', {x: srcc[x] for x in ['train', 'val']}, epoch + 1)
-            writer.add_scalars('KRCC', {x: krcc[x] for x in ['train', 'val']}, epoch + 1)
-            writer.flush()
+
+        writer.add_scalars('Loss', {'train_real': epoch_real_loss['train'],
+                                    'val_real': epoch_real_loss['val'],
+                                    'train_fake': epoch_fake_loss['train'],
+                                    'val_fake': epoch_fake_loss['val']}, epoch + 1)
+        writer.add_scalars('PLCC', {x: plcc[x] for x in ['train', 'val']}, epoch + 1)
+        writer.add_scalars('SRCC', {x: srcc[x] for x in ['train', 'val']}, epoch + 1)
+        writer.add_scalars('KRCC', {x: krcc[x] for x in ['train', 'val']}, epoch + 1)
+        writer.flush()
 
         if save_model_dir:
             torch.save(netD.state_dict(), os.path.join(save_model_dir, f'netD_epoch{epoch + 1}.pth'))
