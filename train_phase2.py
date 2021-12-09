@@ -54,6 +54,8 @@ def main(netG_path,
 
     if log_dir:
         writer = SummaryWriter(log_dir=log_dir)
+    else:
+        writer = SummaryWriter()
 
     for epoch in range(num_epochs):
         print(f'Epoch {epoch + 1}/{num_epochs}')
@@ -157,8 +159,7 @@ def main(netG_path,
         if save_model_dir:
             torch.save(netD.state_dict(), os.path.join(save_model_dir, f'netD_epoch{epoch + 1}.pth'))
 
-    if log_dir:
-        writer.close()
+    writer.close()
 
 
 if __name__ == '__main__':
