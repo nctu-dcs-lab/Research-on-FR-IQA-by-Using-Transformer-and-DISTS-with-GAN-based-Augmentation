@@ -1,3 +1,4 @@
+import math
 import os
 import shutil
 from pathlib import Path
@@ -99,6 +100,7 @@ def main(data_dir,
                                   optimizer,
                                   loss,
                                   loss_weight,
+                                  epoch * math.ceil(datasets_sizes['train'] / batch_size),
                                   latent_dim,
                                   datasets_sizes['train'],
                                   writer,

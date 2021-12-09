@@ -35,6 +35,7 @@ def train_phase1(dataloader,
                  optimizer,
                  loss,
                  loss_weight,
+                 start_iteration,
                  latent_dim,
                  dataset_size,
                  writer: SummaryWriter,
@@ -176,8 +177,8 @@ def train_phase1(dataloader,
                 'D(x)': record['D_x'],
                 'D(G(z))': f'{record["D_G_z1"]: .4f} /{record["D_G_z2"]: .4f}'
             })
-            if writer and iteration % 100 == 0:
-                write_iteration_log(writer, record, iteration, loss_weight)
+            if (start_iteration + iteration) % 100 == 0:
+                write_iteration_log(writer, record, start_iteration + iteration, loss_weight)
 
             """
             Record epoch loss
