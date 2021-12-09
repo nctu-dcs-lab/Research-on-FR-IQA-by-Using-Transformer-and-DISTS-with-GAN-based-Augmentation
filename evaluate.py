@@ -41,7 +41,7 @@ def evaluate_phase1(dataloader, model, loss, dataset_size, device=torch.device('
         categories = categories.to(device)
 
         # Format batch
-        bs, ncrops, c, h, w = ref_imgs.size()
+        bs = ref_imgs.size(0)
 
         with torch.no_grad():
             _, pred_categories, pred_scores = model['netD'](ref_imgs, dist_imgs)
