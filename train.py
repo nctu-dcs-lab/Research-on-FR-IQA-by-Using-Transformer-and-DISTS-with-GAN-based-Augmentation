@@ -55,6 +55,9 @@ def train_phase1(dataloader,
         'cont': 0
     }
 
+    model['netG'].train()
+    model['netD'].train()
+
     with tqdm(dataloader) as tepoch:
         for iteration, (ref_imgs, dist_imgs, scores, categories, origin_scores) in enumerate(tepoch):
             ref_imgs = ref_imgs.to(device)
