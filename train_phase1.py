@@ -122,10 +122,22 @@ def main(data_dir,
 
 
 if __name__ == '__main__':
+    num_experiment = 1
     main(
         data_dir=Path('../data/PIPAL(processed)/'),
-        log_dir='',
-        model_dir='',
+        log_dir=os.path.expanduser(f'~/nfs/result/acgan-iqt/phase1/experiment{num_experiment}/logs'),
+        model_dir=os.path.expanduser(f'~/nfs/result/acgan-iqt/phase1/experiment{num_experiment}/models'),
         num_epochs=50,
         lr={'netG': 5e-5, 'netD': 1e-5},
+        loss_weight={
+            'errD_real_adv': 1,
+            'errD_real_clf': 0.1,
+            'errD_real_qual': 1,
+            'errD_fake_adv': 1,
+            'errD_fake_clf': 0.01,
+            'errG_adv': 0.01,
+            'errG_clf': 0.05,
+            'errG_qual': 1,
+            'errG_cont': 0.1
+        }
     )
