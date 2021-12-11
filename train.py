@@ -226,8 +226,7 @@ def train_phase2(dataloader, model, optimizer, scheduler, loss, latent_dim, data
 
     result = {
         'real_loss': 0,
-        'fake_loss': 0,
-        'total_loss': 0
+        'fake_loss': 0
     }
 
     with tqdm(dataloader) as tepoch:
@@ -274,7 +273,6 @@ def train_phase2(dataloader, model, optimizer, scheduler, loss, latent_dim, data
 
             result['real_loss'] += real_loss.item() * bs
             result['fake_loss'] += fake_loss.item() * bs
-            result['total_loss'] += total_loss.item() * bs
 
             # Show training message
             tepoch.set_postfix({
@@ -285,7 +283,6 @@ def train_phase2(dataloader, model, optimizer, scheduler, loss, latent_dim, data
     scheduler.step()
 
     result['real_loss'] /= dataset_size
-    result['fake_loss'] /= dataset_size
     result['fake_loss'] /= dataset_size
 
     """
