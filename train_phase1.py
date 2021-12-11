@@ -122,7 +122,7 @@ def main(data_dir,
 
 
 if __name__ == '__main__':
-    num_experiment = 2
+    num_experiment = 3
     main(
         data_dir=Path('../data/PIPAL(processed)/'),
         log_dir=os.path.expanduser(f'~/nfs/result/acgan-iqt/phase1/experiment{num_experiment}/logs'),
