@@ -88,19 +88,20 @@ def evaluate_phase2(dataloader, model, loss, latent_dim, dataset_size, device=to
             categories = categories.to(device)
 
             # Format batch
-            bs = ref_imgs.size(0)
+            bs, ncrops, c, h, w = ref_imgs.size()
 
             with torch.no_grad():
                 """
                 Evaluate real distorted images
                 """
-                _, _, pred_scores = model['netD'](ref_imgs, dist_imgs)
+                _, _, pred_scores = model['netD'](ref_imgs.view(-1, c, h, w), dist_imgs.view(-1, c, h, w))
+                pred_scores_avg = pred_scores.view(bs, ncrops, -1).mean(1).view(-1)
 
-                real_loss = loss(pred_scores, scores)
+                real_loss = loss(pred_scores_avg, scores)
 
                 # Record original scores and predict scores
                 record['gt_scores'].append(origin_scores)
-                record['pred_scores'].append(pred_scores.cpu().detach())
+                record['pred_scores'].append(pred_scores_avg.cpu().detach())
 
                 """
                 Evaluate fake distorted images
@@ -108,15 +109,16 @@ def evaluate_phase2(dataloader, model, loss, latent_dim, dataset_size, device=to
                 noise = torch.randn(bs, latent_dim, device=device)
 
                 fake_imgs = model['netG'](
-                    ref_imgs,
+                    ref_imgs.view(-1, c, h, w),
                     noise,
                     scores.view(bs, -1),
                     categories.view(bs, -1).float()
                 )
 
-                _, _, pred_scores = model['netD'](ref_imgs, fake_imgs.detach())
+                _, _, pred_scores = model['netD'](ref_imgs.view(-1, c, h, w), fake_imgs.detach())
+                pred_scores_avg = pred_scores.view(bs, ncrops, -1).mean(1).view(-1)
 
-                fake_loss = loss(pred_scores, scores)
+                fake_loss = loss(pred_scores_avg, scores)
 
                 total_loss = real_loss + fake_loss
 
