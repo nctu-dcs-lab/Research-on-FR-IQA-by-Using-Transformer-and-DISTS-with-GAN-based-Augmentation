@@ -135,4 +135,13 @@ def evaluate_phase2(dataloader, model, loss, latent_dim, dataset_size, device=to
     result['real_loss'] /= dataset_size
     result['fake_loss'] /= dataset_size
 
+    """
+    Calculate correlation coefficient
+    """
+    result['PLCC'], result['SRCC'], result['KRCC'] = \
+        calculate_correlation_coefficient(
+            torch.cat(record['gt_scores']).numpy(),
+            torch.cat(record['pred_scores']).numpy()
+        )
+
     return result
