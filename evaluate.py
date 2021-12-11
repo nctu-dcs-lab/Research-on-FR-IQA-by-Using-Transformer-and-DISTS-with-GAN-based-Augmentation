@@ -120,21 +120,16 @@ def evaluate_phase2(dataloader, model, loss, latent_dim, dataset_size, device=to
 
                 fake_loss = loss(pred_scores_avg, scores)
 
-                total_loss = real_loss + fake_loss
-
             result['real_loss'] += real_loss.item() * bs
             result['fake_loss'] += fake_loss.item() * bs
-            result['total_loss'] += total_loss.item() * bs
 
             # Show training message
             tepoch.set_postfix({
                 'Real Loss': real_loss.item(),
-                'Fake Loss': fake_loss.item(),
-                'Total Loss': total_loss.item()
+                'Fake Loss': fake_loss.item()
             })
 
     result['real_loss'] /= dataset_size
     result['fake_loss'] /= dataset_size
-    result['total_loss'] /= dataset_size
 
     return result
