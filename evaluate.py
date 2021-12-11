@@ -113,9 +113,9 @@ def evaluate_phase2(dataloader, model, loss, latent_dim, dataset_size, device=to
 
                 fake_imgs = model['netG'](
                     ref_imgs.view(-1, c, h, w),
-                    noise,
-                    scores.view(bs, -1),
-                    categories.view(bs, -1).float()
+                    noise.repeat_interleave(ncrops, dim=0),
+                    scores.repeat_interleave(ncrops).view(bs * ncrops, -1),
+                    categories.repeat_interleave(ncrops).view(bs * ncrops, -1).float()
                 )
 
                 _, _, pred_scores = model['netD'](ref_imgs.view(-1, c, h, w), fake_imgs.detach())
