@@ -78,6 +78,7 @@ def main(netG_path,
                 dataloaders['val'],
                 model,
                 mse_loss,
+                latent_dim,
                 datasets_sizes['val'],
                 device
             )
