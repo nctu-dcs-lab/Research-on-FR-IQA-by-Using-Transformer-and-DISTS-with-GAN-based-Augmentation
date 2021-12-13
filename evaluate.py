@@ -217,5 +217,5 @@ if __name__ == '__main__':
     main(
         netD_path=os.path.expanduser('~/nfs/result/acgan-iqt/phase2/experiment1/models/netD_epoch100.pth'),
         data_dir=Path('../data/PIPAL(processed)/'),
-        phase='phase1'
+        phase='phase2'
     )

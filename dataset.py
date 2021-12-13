@@ -33,7 +33,7 @@ def transform(ref_img, dist_img, mode='train', phase='phase1'):
 
         return ref_img, dist_img
 
-    elif mode == 'val' and phase == 'phase1':
+    elif phase == 'phase1':
         ref_img = TF.center_crop(ref_img, 192)
         dist_img = TF.center_crop(dist_img, 192)
 
@@ -42,7 +42,7 @@ def transform(ref_img, dist_img, mode='train', phase='phase1'):
 
         return ref_img, dist_img
 
-    elif mode == 'val' and phase == 'phase2':
+    elif phase == 'phase2':
         ref_imgs = TF.five_crop(ref_img, 192)
         dist_imgs = TF.five_crop(dist_img, 192)
 
