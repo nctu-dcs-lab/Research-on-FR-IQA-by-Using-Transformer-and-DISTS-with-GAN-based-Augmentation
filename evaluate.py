@@ -1,9 +1,14 @@
+import os
 import warnings
+from pathlib import Path
 
 import numpy as np
 import torch
 from scipy.stats import spearmanr, kendalltau, pearsonr
 from tqdm import tqdm
+
+from dataset import create_dataloaders
+from module import MultiTask
 
 warnings.simplefilter('ignore', np.RankWarning)
 
@@ -82,6 +87,9 @@ def evaluate_phase2(dataloader, model, loss, latent_dim, dataset_size, device=to
         'total_loss': 0
     }
 
+    model['netD'].eval()
+    model['netG'].eval()
+
     with tqdm(dataloader) as tepoch:
         for iteration, (ref_imgs, dist_imgs, scores, categories, origin_scores) in enumerate(tepoch):
             ref_imgs = ref_imgs.to(device)
@@ -144,3 +152,70 @@ def evaluate_phase2(dataloader, model, loss, latent_dim, dataset_size, device=to
         )
 
     return result
+
+
+def evaluate(dataloader, model, device=torch.device('cpu')):
+    record = {
+        'gt_scores': [],
+        'pred_scores': [],
+    }
+    result = {}
+
+    model['netD'].eval()
+    with tqdm(dataloader) as tepoch:
+        for iteration, (ref_imgs, dist_imgs, _, _, origin_scores) in enumerate(tepoch):
+            ref_imgs = ref_imgs.to(device)
+            dist_imgs = dist_imgs.to(device)
+
+            # Format batch
+            bs, ncrops, c, h, w = ref_imgs.size()
+
+            with torch.no_grad():
+                """
+                Evaluate distorted images
+                """
+                _, _, pred_scores = model['netD'](ref_imgs.view(-1, c, h, w), dist_imgs.view(-1, c, h, w))
+                pred_scores_avg = pred_scores.view(bs, ncrops, -1).mean(1).view(-1)
+
+                # Record original scores and predict scores
+                record['gt_scores'].append(origin_scores)
+                record['pred_scores'].append(pred_scores_avg.cpu().detach())
+
+    """
+    Calculate correlation coefficient
+    """
+    result['PLCC'], result['SRCC'], result['KRCC'] = \
+        calculate_correlation_coefficient(
+            torch.cat(record['gt_scores']).numpy(),
+            torch.cat(record['pred_scores']).numpy()
+        )
+    return result
+
+
+def main(netD_path, data_dir, phase='phase1', batch_size=16, num_workers=10):
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+    dataloaders, datasets_size = create_dataloaders(data_dir,
+                                                    phase=phase,
+                                                    batch_size=batch_size,
+                                                    num_workers=num_workers)
+    model = {
+        'netD': MultiTask(pretrained=True).to(device)
+    }
+    model['netD'].load_state_dict(torch.load(netD_path))
+
+    results = {}
+    for mode in ['val', 'test']:
+        results[mode] = evaluate(dataloaders[mode], model, device)
+        print(f'{mode}')
+        print(f'PLCC: {results[mode]["PLCC"]}')
+        print(f'SRCC: {results[mode]["SRCC"]}')
+        print(f'KRCC: {results[mode]["KRCC"]}')
+
+
+if __name__ == '__main__':
+    main(
+        netD_path=os.path.expanduser('~/nfs/result/acgan-iqt/phase2/experiment1/models/netD_epoch100.pth'),
+        data_dir=Path('../data/PIPAL(processed)/'),
+        phase='phase1'
+    )
