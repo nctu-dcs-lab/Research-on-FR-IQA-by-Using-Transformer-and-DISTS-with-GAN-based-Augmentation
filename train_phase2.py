@@ -100,12 +100,13 @@ def main(netG_path,
 
 
 if __name__ == '__main__':
+    num_experiment = 1
     main(
-        netG_path=os.path.expanduser(''),
-        netD_path=os.path.expanduser(''),
+        netG_path=os.path.expanduser('~/nfs/result/acgan-iqt/phase1/experiment2/models/netG_epoch100.pth'),
+        netD_path=os.path.expanduser('~/nfs/result/acgan-iqt/phase1/experiment2/models/netD_epoch100.pth'),
         data_dir=Path('../data/PIPAL(processed)/'),
-        log_dir='',
-        save_model_dir='',
+        log_dir=os.path.expanduser(f'~/nfs/result/acgan-iqt/phase2/experiment{num_experiment}/logs'),
+        save_model_dir=os.path.expanduser(f'~/nfs/result/acgan-iqt/phase2/experiment{num_experiment}/models'),
         lr=5e-5,
         num_epochs=100
     )
