@@ -100,7 +100,7 @@ def evaluate_phase2(dataloader, model, loss, latent_dim, dataset_size, device=to
                 _, _, pred_scores = model['netD'](ref_imgs.view(-1, c, h, w), dist_imgs.view(-1, c, h, w))
                 pred_scores_avg = pred_scores.view(bs, ncrops, -1).mean(1).view(-1)
 
-                real_loss = loss(pred_scores_avg, scores)
+                real_loss = loss['mse_loss'](pred_scores_avg, scores)
 
                 # Record original scores and predict scores
                 record['gt_scores'].append(origin_scores)
@@ -121,7 +121,7 @@ def evaluate_phase2(dataloader, model, loss, latent_dim, dataset_size, device=to
                 _, _, pred_scores = model['netD'](ref_imgs.view(-1, c, h, w), fake_imgs.detach())
                 pred_scores_avg = pred_scores.view(bs, ncrops, -1).mean(1).view(-1)
 
-                fake_loss = loss(pred_scores_avg, scores)
+                fake_loss = loss['mse_loss'](pred_scores_avg, scores)
 
             result['real_loss'] += real_loss.item() * bs
             result['fake_loss'] += fake_loss.item() * bs

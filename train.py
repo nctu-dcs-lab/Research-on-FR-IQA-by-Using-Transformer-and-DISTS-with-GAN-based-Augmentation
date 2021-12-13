@@ -249,7 +249,7 @@ def train_phase2(dataloader, model, optimizer, scheduler, loss, latent_dim, data
             """
             _, _, pred_scores = model['netD'](ref_imgs, dist_imgs)
 
-            real_loss = loss(pred_scores, scores)
+            real_loss = loss['mse_loss'](pred_scores, scores)
 
             # Record original scores and predict scores
             record['gt_scores'].append(origin_scores)
@@ -268,7 +268,7 @@ def train_phase2(dataloader, model, optimizer, scheduler, loss, latent_dim, data
 
             _, _, pred_scores = model['netD'](ref_imgs, fake_imgs.detach())
 
-            fake_loss = loss(pred_scores, scores)
+            fake_loss = loss['mse_loss'](pred_scores, scores)
 
             total_loss = real_loss + fake_loss
             total_loss.backward()

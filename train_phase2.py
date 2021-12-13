@@ -49,7 +49,9 @@ def main(netG_path,
     model['netG'].eval()
     model['netD'].load_state_dict(torch.load(netD_path))
 
-    mse_loss = nn.MSELoss()
+    loss = {
+        'mse_loss': nn.MSELoss()
+    }
 
     optimizer = optim.Adam(model['netD'].parameters(), lr=lr)
     scheduler = CosineAnnealingWarmRestarts(optimizer, T_0=1, T_mult=2)
@@ -69,7 +71,7 @@ def main(netG_path,
                 model,
                 optimizer,
                 scheduler,
-                mse_loss,
+                loss,
                 latent_dim,
                 datasets_sizes['train'],
                 device
@@ -77,7 +79,7 @@ def main(netG_path,
             'val': evaluate_phase2(
                 dataloaders['val'],
                 model,
-                mse_loss,
+                loss,
                 latent_dim,
                 datasets_sizes['val'],
                 device
