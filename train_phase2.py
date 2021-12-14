@@ -34,10 +34,12 @@ def main(netG_path,
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    dataloaders, datasets_sizes = create_dataloaders(data_dir,
-                                                     phase='phase2',
-                                                     batch_size=batch_size,
-                                                     num_workers=num_workers)
+    dataloaders, datasets_sizes = create_dataloaders(
+        data_dir,
+        phase='phase2',
+        batch_size=batch_size,
+        num_workers=num_workers
+    )
 
     # Set Up Model
     model = {
@@ -86,10 +88,15 @@ def main(netG_path,
             )
         }
 
-        writer.add_scalars('Loss', {'train_real': results['train']['real_loss'],
-                                    'val_real': results['val']['real_loss'],
-                                    'train_fake': results['train']['fake_loss'],
-                                    'val_fake': results['val']['fake_loss']}, epoch + 1)
+        writer.add_scalars(
+            'Loss', {
+                'train_real': results['train']['real_loss'],
+                'val_real': results['val']['real_loss'],
+                'train_fake': results['train']['fake_loss'],
+                'val_fake': results['val']['fake_loss']
+            },
+            epoch + 1
+        )
         writer.add_scalars('PLCC', {x: results[x]['PLCC'] for x in ['train', 'val']}, epoch + 1)
         writer.add_scalars('SRCC', {x: results[x]['SRCC'] for x in ['train', 'val']}, epoch + 1)
         writer.add_scalars('KRCC', {x: results[x]['KRCC'] for x in ['train', 'val']}, epoch + 1)
