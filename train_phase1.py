@@ -56,10 +56,12 @@ def main(data_dir,
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    dataloaders, datasets_sizes = create_dataloaders(data_dir,
-                                                     phase='phase1',
-                                                     batch_size=batch_size,
-                                                     num_workers=num_workers)
+    dataloaders, datasets_size = create_dataloaders(
+        data_dir,
+        phase='phase1',
+        batch_size=batch_size,
+        num_workers=num_workers
+    )
 
     # Set Up Model
     model = {
@@ -90,33 +92,37 @@ def main(data_dir,
     else:
         writer: SummaryWriter = SummaryWriter()
 
-    for epoch in range(num_epochs):
-        print(f'Epoch {start_epoch + epoch + 1}/{start_epoch + num_epochs}')
+    for epoch in range(start_epoch, start_epoch + num_epochs):
+        print(f'Epoch {epoch + 1}/{start_epoch + num_epochs}')
         print('-' * 10)
 
         results = {
-            'train': train_phase1(dataloaders['train'],
-                                  model,
-                                  optimizer,
-                                  loss,
-                                  loss_weight,
-                                  epoch * math.ceil(datasets_sizes['train'] / batch_size),
-                                  latent_dim,
-                                  datasets_sizes['train'],
-                                  writer,
-                                  device),
-            'val': evaluate_phase1(dataloaders['val'],
-                                   model,
-                                   loss,
-                                   datasets_sizes['val'],
-                                   device)
+            'train': train_phase1(
+                dataloaders['train'],
+                model,
+                optimizer,
+                loss,
+                loss_weight,
+                epoch * math.ceil(datasets_size['train'] / batch_size),
+                latent_dim,
+                datasets_size['train'],
+                writer,
+                device
+            ),
+            'val': evaluate_phase1(
+                dataloaders['val'],
+                model,
+                loss,
+                datasets_size['val'],
+                device
+            )
         }
 
-        write_epoch_log(writer, results, start_epoch + epoch + 1)
+        write_epoch_log(writer, results, epoch + 1)
 
         if model_dir:
-            torch.save(model['netG'].state_dict(), os.path.join(model_dir, f'netG_epoch{start_epoch + epoch + 1}.pth'))
-            torch.save(model['netD'].state_dict(), os.path.join(model_dir, f'netD_epoch{start_epoch + epoch + 1}.pth'))
+            torch.save(model['netG'].state_dict(), os.path.join(model_dir, f'netG_epoch{epoch + 1}.pth'))
+            torch.save(model['netD'].state_dict(), os.path.join(model_dir, f'netD_epoch{epoch + 1}.pth'))
 
     writer.close()
 
