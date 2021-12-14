@@ -23,7 +23,8 @@ def main(netG_path,
          num_epochs=25,
          num_workers=10,
          lr=1e-5,
-         latent_dim=100):
+         latent_dim=100,
+         start_epoch=0):
     if save_model_dir:
         if not os.path.isdir(save_model_dir):
             os.makedirs(save_model_dir)
@@ -63,8 +64,8 @@ def main(netG_path,
     else:
         writer = SummaryWriter()
 
-    for epoch in range(num_epochs):
-        print(f'Epoch {epoch + 1}/{num_epochs}')
+    for epoch in range(start_epoch, start_epoch + num_epochs):
+        print(f'Epoch {epoch + 1}/{start_epoch + num_epochs}')
         print('-' * 10)
 
         results = {
@@ -117,5 +118,6 @@ if __name__ == '__main__':
         log_dir=os.path.expanduser(f'~/nfs/result/acgan-iqt/phase2/experiment{num_experiment}/logs'),
         save_model_dir=os.path.expanduser(f'~/nfs/result/acgan-iqt/phase2/experiment{num_experiment}/models'),
         lr=5e-5,
-        num_epochs=100
+        num_epochs=100,
+        start_epoch=100
     )
