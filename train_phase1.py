@@ -4,6 +4,7 @@ import shutil
 from pathlib import Path
 
 import torch
+import torch.multiprocessing
 import torch.nn as nn
 import torch.optim as optim
 from pytorch_fid.inception import InceptionV3
@@ -14,6 +15,8 @@ from evaluate import evaluate_phase1
 from log import write_epoch_log
 from module import Generator, MultiTask
 from train import train_phase1
+
+torch.multiprocessing.set_sharing_strategy('file_system')
 
 
 def main(data_dir,

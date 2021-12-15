@@ -3,6 +3,7 @@ import shutil
 from pathlib import Path
 
 import torch
+import torch.multiprocessing
 import torch.nn as nn
 import torch.optim as optim
 from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
@@ -12,6 +13,8 @@ from dataset import create_dataloaders
 from evaluate import evaluate_phase2
 from module import Generator, MultiTask
 from train import train_phase2
+
+torch.multiprocessing.set_sharing_strategy('file_system')
 
 
 def main(netG_path,
