@@ -32,13 +32,12 @@ def main(netG_path,
         if not os.path.isdir(save_model_dir):
             os.makedirs(save_model_dir)
 
-    if log_dir:
-        if os.path.isdir(log_dir):
-            shutil.rmtree(log_dir)
+    if log_dir and os.path.isdir(log_dir):
+        shutil.rmtree(log_dir)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    dataloaders, datasets_sizes = create_dataloaders(
+    dataloaders, datasets_size = create_dataloaders(
         data_dir,
         phase='phase2',
         batch_size=batch_size,
@@ -79,7 +78,7 @@ def main(netG_path,
                 scheduler,
                 loss,
                 latent_dim,
-                datasets_sizes['train'],
+                datasets_size['train'],
                 device
             ),
             'val': evaluate_phase2(
@@ -87,7 +86,7 @@ def main(netG_path,
                 model,
                 loss,
                 latent_dim,
-                datasets_sizes['val'],
+                datasets_size['val'],
                 device
             )
         }

@@ -52,10 +52,8 @@ def main(data_dir,
         if not os.path.isdir(model_dir):
             os.makedirs(model_dir)
 
-    if load_netG_path == '' and load_netD_path == '':
-        if log_dir:
-            if os.path.isdir(log_dir):
-                shutil.rmtree(log_dir)
+    if log_dir and os.path.isdir(log_dir):
+        shutil.rmtree(log_dir)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
