@@ -8,6 +8,7 @@ import torch.multiprocessing
 import torch.nn as nn
 import torch.optim as optim
 from pytorch_fid.inception import InceptionV3
+from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 from torch.utils.tensorboard import SummaryWriter
 
 from dataset import create_dataloaders
@@ -88,6 +89,14 @@ def main(data_dir,
         'optimizerD': optim.Adam(model['netD'].parameters(), lr=lr['netD'])
     }
 
+    scheduler = {
+        'schedulerG': CosineAnnealingWarmRestarts(optimizer['optimizerG'], T_0=1, T_mult=2),
+        'schedulerD': CosineAnnealingWarmRestarts(optimizer['optimizerD'], T_0=1, T_mult=2)
+    }
+    if start_epoch != 0:
+        scheduler['schedulerG'].step(start_epoch)
+        scheduler['schedulerD'].step(start_epoch)
+
     if log_dir:
         writer: SummaryWriter = SummaryWriter(log_dir=log_dir)
     else:
@@ -118,6 +127,9 @@ def main(data_dir,
                 device
             )
         }
+
+        scheduler['schedulerG'].step()
+        scheduler['schedulerD'].step()
 
         write_epoch_log(writer, results, epoch + 1)
 
