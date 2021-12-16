@@ -221,7 +221,7 @@ def train_phase1(dataloader,
     return result
 
 
-def train_phase2(dataloader, model, optimizer, scheduler, loss, latent_dim, dataset_size, device=torch.device('cpu')):
+def train_phase2(dataloader, model, optimizer, loss, latent_dim, dataset_size, device=torch.device('cpu')):
     record = {
         'gt_scores': [],
         'pred_scores': []
@@ -283,7 +283,6 @@ def train_phase2(dataloader, model, optimizer, scheduler, loss, latent_dim, data
                 'Fake Loss': fake_loss.item(),
                 'Total Loss': total_loss.item()
             })
-    scheduler.step()
 
     result['real_loss'] /= dataset_size
     result['fake_loss'] /= dataset_size

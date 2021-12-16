@@ -75,7 +75,6 @@ def main(netG_path,
                 dataloaders['train'],
                 model,
                 optimizer,
-                scheduler,
                 loss,
                 latent_dim,
                 datasets_size['train'],
@@ -90,6 +89,8 @@ def main(netG_path,
                 device
             )
         }
+
+        scheduler.step()
 
         writer.add_scalars(
             'Loss', {
