@@ -60,6 +60,8 @@ def main(netG_path,
 
     optimizer = optim.Adam(model['netD'].parameters(), lr=lr)
     scheduler = CosineAnnealingWarmRestarts(optimizer, T_0=1, T_mult=2)
+    if start_epoch != 0:
+        scheduler.step(start_epoch)
 
     if log_dir:
         writer = SummaryWriter(log_dir=log_dir)
