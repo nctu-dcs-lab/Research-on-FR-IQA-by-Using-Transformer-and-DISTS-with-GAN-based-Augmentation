@@ -1,4 +1,4 @@
-import os
+import argparse
 import warnings
 from pathlib import Path
 
@@ -192,17 +192,19 @@ def evaluate(dataloader, model, device=torch.device('cpu')):
     return result
 
 
-def main(netD_path, data_dir, phase='phase1', batch_size=16, num_workers=10):
+def main(args):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    dataloaders, datasets_size = create_dataloaders(data_dir,
-                                                    phase=phase,
-                                                    batch_size=batch_size,
-                                                    num_workers=num_workers)
+    dataloaders, datasets_size = create_dataloaders(
+        Path(args.data_dir),
+        phase=args.phase,
+        batch_size=args.batch_size,
+        num_workers=args.num_workers
+    )
     model = {
         'netD': MultiTask(pretrained=True).to(device)
     }
-    model['netD'].load_state_dict(torch.load(netD_path))
+    model['netD'].load_state_dict(torch.load(args.netD_path))
 
     results = {}
     for mode in ['val', 'test']:
@@ -214,8 +216,17 @@ def main(netD_path, data_dir, phase='phase1', batch_size=16, num_workers=10):
 
 
 if __name__ == '__main__':
-    main(
-        netD_path=os.path.expanduser('~/nfs/result/acgan-iqt/phase2/experiment1/models/netD_epoch100.pth'),
-        data_dir=Path('../data/PIPAL(processed)/'),
-        phase='phase2'
-    )
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--data_dir',
+                        default='../data/PIPAL(processed)',
+                        type=str,
+                        help='Root directory for PIPAL dataset')
+    parser.add_argument('--netD_path', required=True, type=str, help='Load model path')
+    parser.add_argument('--phase', default='phase1', type=str, choices=['phase1', 'phase2'])
+    parser.add_argument('--batch_size', default=16, type=int)
+    parser.add_argument('--num_workers', default=10, type=int)
+
+    args = parser.parse_args()
+
+    main(args)
