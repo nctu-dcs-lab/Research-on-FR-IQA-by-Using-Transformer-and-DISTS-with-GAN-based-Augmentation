@@ -34,9 +34,8 @@ def train_phase1(dataloader,
                  model,
                  optimizer,
                  loss,
-                 loss_weight,
+                 cfg,
                  start_iteration,
-                 latent_dim,
                  dataset_size,
                  writer: SummaryWriter,
                  device=torch.device('cpu')):
@@ -91,9 +90,9 @@ def train_phase1(dataloader,
             record['errD_real_qual'] = errD_real_qual.item()
 
             errD_real = \
-                loss_weight['errD_real_adv'] * errD_real_adv + \
-                loss_weight['errD_real_clf'] * errD_real_clf + \
-                loss_weight['errD_real_qual'] * errD_real_qual
+                cfg.TRAIN.CRITERION_WEIGHT.ERRD_REAL_ADV * errD_real_adv + \
+                cfg.TRAIN.CRITERION_WEIGHT.ERRD_REAL_CLF * errD_real_clf + \
+                cfg.TRAIN.CRITERION_WEIGHT.ERRD_REAL_QUAL * errD_real_qual
 
             # Record original scores and predict scores
             record['gt_scores'].append(origin_scores)
@@ -103,7 +102,7 @@ def train_phase1(dataloader,
             Discriminator with fake image
             """
             # Generate batch of latent vectors
-            noise = torch.randn(bs, latent_dim, device=device)
+            noise = torch.randn(bs, cfg.MODEL.LATENT_DIM, device=device)
 
             fake_imgs = model['netG'](ref_imgs,
                                       noise,
@@ -121,7 +120,7 @@ def train_phase1(dataloader,
             record['errD_fake_adv'] = errD_fake_adv.item()
             record['errD_fake_clf'] = errD_fake_clf.item()
 
-            errD_fake = loss_weight['errD_fake_adv'] * errD_fake_adv + loss_weight['errD_fake_clf'] * errD_fake_clf
+            errD_fake = cfg.TRAIN.CRITERION_WEIGHT.ERRD_FAKE_ADV * errD_fake_adv + cfg.TRAIN.CRITERION_WEIGHT.ERRD_FAKE_CLF * errD_fake_clf
 
             errD = errD_real + errD_fake
             record['errD'] = errD.item()
@@ -151,10 +150,10 @@ def train_phase1(dataloader,
             record['errG_cont'] = errG_cont.item()
 
             errG = \
-                loss_weight['errG_adv'] * errG_adv + \
-                loss_weight['errG_clf'] * errG_clf + \
-                loss_weight['errG_qual'] * errG_qual + \
-                loss_weight['errG_cont'] * errG_cont
+                cfg.TRAIN.CRITERION_WEIGHT.ERRG_ADV * errG_adv + \
+                cfg.TRAIN.CRITERION_WEIGHT.ERRG_CLF * errG_clf + \
+                cfg.TRAIN.CRITERION_WEIGHT.ERRG_QUAL * errG_qual + \
+                cfg.TRAIN.CRITERION_WEIGHT.ERRG_CONT * errG_cont
 
             record['errG'] = errG.item()
 
@@ -180,8 +179,9 @@ def train_phase1(dataloader,
                 'D(x)': record['D_x'],
                 'D(G(z))': f'{record["D_G_z1"]: .4f}/{record["D_G_z2"]: .4f}'
             })
+
             if (start_iteration + iteration) % 100 == 0:
-                write_iteration_log(writer, record, start_iteration + iteration, loss_weight)
+                write_iteration_log(writer, record, start_iteration + iteration, cfg)
 
             """
             Record epoch loss

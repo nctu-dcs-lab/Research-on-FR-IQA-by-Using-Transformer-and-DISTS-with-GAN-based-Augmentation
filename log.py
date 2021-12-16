@@ -1,25 +1,25 @@
 from torch.utils.tensorboard import SummaryWriter
 
 
-def write_iteration_log(writer: SummaryWriter, record, iteration, loss_weight):
+def write_iteration_log(writer: SummaryWriter, record, iteration, cfg):
     writer.add_scalars(
         'Loss_netD', {
             'total': record['errD'],
-            'weighted_real_adv': loss_weight['errD_real_adv'] * record['errD_real_adv'],
-            'weighted_real_clf': loss_weight['errD_real_clf'] * record['errD_real_clf'],
-            'weighted_real_qual': loss_weight['errD_real_qual'] * record['errD_real_qual'],
-            'weighted_fake_adv': loss_weight['errD_fake_adv'] * record['errD_fake_adv'],
-            'weighted_fake_clf': loss_weight['errD_fake_clf'] * record['errD_fake_clf']
+            'weighted_real_adv': cfg.TRAIN.CRITERION_WEIGHT.ERRD_REAL_ADV * record['errD_real_adv'],
+            'weighted_real_clf': cfg.TRAIN.CRITERION_WEIGHT.ERRD_REAL_CLF * record['errD_real_clf'],
+            'weighted_real_qual': cfg.TRAIN.CRITERION_WEIGHT.ERRD_REAL_QUAL * record['errD_real_qual'],
+            'weighted_fake_adv': cfg.TRAIN.CRITERION_WEIGHT.ERRD_FAKE_ADV * record['errD_fake_adv'],
+            'weighted_fake_clf': cfg.TRAIN.CRITERION_WEIGHT.ERRD_FAKE_CLF * record['errD_fake_clf']
         }, iteration // 100
     )
 
     writer.add_scalars(
         'Loss_netG', {
             'total': record['errG'],
-            'weighted_adv': loss_weight['errG_adv'] * record['errG_adv'],
-            'weighted_clf': loss_weight['errG_clf'] * record['errG_clf'],
-            'weighted_qual': loss_weight['errG_qual'] * record['errG_qual'],
-            'weighted_cont': loss_weight['errG_cont'] * record['errG_cont']
+            'weighted_adv': cfg.TRAIN.CRITERION_WEIGHT.ERRG_ADV * record['errG_adv'],
+            'weighted_clf': cfg.TRAIN.CRITERION_WEIGHT.ERRG_CLF * record['errG_clf'],
+            'weighted_qual': cfg.TRAIN.CRITERION_WEIGHT.ERRG_QUAL * record['errG_qual'],
+            'weighted_cont': cfg.TRAIN.CRITERION_WEIGHT.ERRG_CONT * record['errG_cont']
         }, iteration // 100
     )
 
