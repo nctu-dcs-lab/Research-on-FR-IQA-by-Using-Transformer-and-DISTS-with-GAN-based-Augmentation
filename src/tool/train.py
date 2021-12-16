@@ -6,7 +6,7 @@ from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from evaluate import calculate_correlation_coefficient
-from log import write_iteration_log
+from src.tool.log import write_iteration_log
 
 
 def img_transform(img):

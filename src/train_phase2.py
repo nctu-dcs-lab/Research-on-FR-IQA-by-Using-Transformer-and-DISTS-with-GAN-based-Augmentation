@@ -9,11 +9,11 @@ import torch.optim as optim
 from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 from torch.utils.tensorboard import SummaryWriter
 
-from config_phase2 import get_cfg_defaults
-from dataset import create_dataloaders
-from evaluate import evaluate_phase2
-from module import Generator, MultiTask
-from train import train_phase2
+from src.config.config_phase2 import get_cfg_defaults
+from src.data.dataset import create_dataloaders
+from src.tool.evaluate import evaluate_phase2
+from src.modeling.module import Generator, MultiTask
+from src.tool.train import train_phase2
 
 torch.multiprocessing.set_sharing_strategy('file_system')
 

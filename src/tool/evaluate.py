@@ -7,8 +7,8 @@ import torch
 from scipy.stats import spearmanr, kendalltau, pearsonr
 from tqdm import tqdm
 
-from dataset import create_dataloaders
-from module import MultiTask
+from src.data.dataset import create_dataloaders
+from src.modeling.module import MultiTask
 
 warnings.simplefilter('ignore', np.RankWarning)
 
