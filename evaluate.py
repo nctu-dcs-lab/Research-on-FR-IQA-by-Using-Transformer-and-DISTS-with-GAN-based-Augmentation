@@ -75,7 +75,7 @@ def evaluate_phase1(dataloader, model, loss, dataset_size, device=torch.device('
     return result
 
 
-def evaluate_phase2(dataloader, model, loss, latent_dim, dataset_size, device=torch.device('cpu')):
+def evaluate_phase2(dataloader, model, loss, cfg, dataset_size, device=torch.device('cpu')):
     record = {
         'gt_scores': [],
         'pred_scores': []
@@ -116,7 +116,7 @@ def evaluate_phase2(dataloader, model, loss, latent_dim, dataset_size, device=to
                 """
                 Evaluate fake distorted images
                 """
-                noise = torch.randn(bs, latent_dim, device=device)
+                noise = torch.randn(bs, cfg.MODEL.LATENT_DIM, device=device)
 
                 fake_imgs = model['netG'](
                     ref_imgs.view(-1, c, h, w),

@@ -221,7 +221,7 @@ def train_phase1(dataloader,
     return result
 
 
-def train_phase2(dataloader, model, optimizer, loss, latent_dim, dataset_size, device=torch.device('cpu')):
+def train_phase2(dataloader, model, optimizer, loss, cfg, dataset_size, device=torch.device('cpu')):
     record = {
         'gt_scores': [],
         'pred_scores': []
@@ -259,7 +259,7 @@ def train_phase2(dataloader, model, optimizer, loss, latent_dim, dataset_size, d
             Deal with Fake Distorted Images
             """
             # Generate batch of latent vectors
-            noise = torch.randn(bs, latent_dim, device=device)
+            noise = torch.randn(bs, cfg.MODEL.LATENT_DIM, device=device)
 
             fake_imgs = model['netG'](ref_imgs,
                                       noise,

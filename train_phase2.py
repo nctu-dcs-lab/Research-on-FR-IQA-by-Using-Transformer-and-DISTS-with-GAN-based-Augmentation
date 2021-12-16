@@ -9,6 +9,7 @@ import torch.optim as optim
 from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 from torch.utils.tensorboard import SummaryWriter
 
+from config_phase2 import get_cfg_defaults
 from dataset import create_dataloaders
 from evaluate import evaluate_phase2
 from module import Generator, MultiTask
@@ -17,31 +18,20 @@ from train import train_phase2
 torch.multiprocessing.set_sharing_strategy('file_system')
 
 
-def main(netG_path,
-         netD_path,
-         data_dir,
-         save_model_dir='',
-         log_dir='',
-         batch_size=16,
-         num_epochs=25,
-         num_workers=10,
-         lr=1e-5,
-         latent_dim=100,
-         start_epoch=0):
-    if save_model_dir:
-        if not os.path.isdir(save_model_dir):
-            os.makedirs(save_model_dir)
+def main(cfg):
+    if cfg.TRAIN.WEIGHT_DIR and not os.path.isdir(cfg.TRAIN.WEIGHT_DIR):
+        os.makedirs(cfg.TRAIN.WEIGHT_DIR)
 
-    if log_dir and os.path.isdir(log_dir):
-        shutil.rmtree(log_dir)
+    if cfg.TRAIN.LOG_DIR and os.path.isdir(cfg.TRAIN.LOG_DIR):
+        shutil.rmtree(cfg.TRAIN.LOG_DIR)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     dataloaders, datasets_size = create_dataloaders(
-        data_dir,
+        Path(cfg.DATASETS.ROOT_DIR),
         phase='phase2',
-        batch_size=batch_size,
-        num_workers=num_workers
+        batch_size=cfg.DATASETS.BATCH_SIZE,
+        num_workers=cfg.DATASETS.NUM_WORKERS
     )
 
     # Set Up Model
@@ -50,26 +40,26 @@ def main(netG_path,
         'netD': MultiTask(pretrained=True).to(device)
     }
 
-    model['netG'].load_state_dict(torch.load(netG_path))
+    model['netG'].load_state_dict(torch.load(cfg.TRAIN.RESUME.NET_G))
     model['netG'].eval()
-    model['netD'].load_state_dict(torch.load(netD_path))
+    model['netD'].load_state_dict(torch.load(cfg.TRAIN.RESUME.NET_D))
 
     loss = {
         'mse_loss': nn.MSELoss()
     }
 
-    optimizer = optim.Adam(model['netD'].parameters(), lr=lr)
+    optimizer = optim.Adam(model['netD'].parameters(), lr=cfg.TRAIN.LEARNING_RATE)
     scheduler = CosineAnnealingWarmRestarts(optimizer, T_0=1, T_mult=2)
-    if start_epoch != 0:
-        scheduler.step(start_epoch)
+    if cfg.TRAIN.START_EPOCH != 0:
+        scheduler.step(cfg.TRAIN.START_EPOCH)
 
-    if log_dir:
-        writer = SummaryWriter(log_dir=log_dir)
+    if cfg.TRAIN.LOG_DIR:
+        writer = SummaryWriter(log_dir=cfg.TRAIN.LOG_DIR)
     else:
         writer = SummaryWriter()
 
-    for epoch in range(start_epoch, start_epoch + num_epochs):
-        print(f'Epoch {epoch + 1}/{start_epoch + num_epochs}')
+    for epoch in range(cfg.TRAIN.START_EPOCH, cfg.TRAIN.START_EPOCH + cfg.TRAIN.NUM_EPOCHS):
+        print(f'Epoch {epoch + 1}/{cfg.TRAIN.START_EPOCH + cfg.TRAIN.NUM_EPOCHS}')
         print('-' * 10)
 
         results = {
@@ -78,7 +68,7 @@ def main(netG_path,
                 model,
                 optimizer,
                 loss,
-                latent_dim,
+                cfg,
                 datasets_size['train'],
                 device
             ),
@@ -86,7 +76,7 @@ def main(netG_path,
                 dataloaders['val'],
                 model,
                 loss,
-                latent_dim,
+                cfg,
                 datasets_size['val'],
                 device
             )
@@ -108,21 +98,15 @@ def main(netG_path,
         writer.add_scalars('KRCC', {x: results[x]['KRCC'] for x in ['train', 'val']}, epoch + 1)
         writer.flush()
 
-        if save_model_dir:
-            torch.save(model['netD'].state_dict(), os.path.join(save_model_dir, f'netD_epoch{epoch + 1}.pth'))
+        if cfg.TRAIN.WEIGHT_DIR:
+            torch.save(model['netD'].state_dict(), os.path.join(cfg.TRAIN.WEIGHT_DIR, f'netD_epoch{epoch + 1}.pth'))
 
     writer.close()
 
 
 if __name__ == '__main__':
-    num_experiment = 1
-    main(
-        netG_path=os.path.expanduser('~/nfs/result/acgan-iqt/phase1/experiment2/models/netG_epoch100.pth'),
-        netD_path=os.path.expanduser('~/nfs/result/acgan-iqt/phase1/experiment2/models/netD_epoch100.pth'),
-        data_dir=Path('../data/PIPAL(processed)/'),
-        log_dir=os.path.expanduser(f'~/nfs/result/acgan-iqt/phase2/experiment{num_experiment}/logs'),
-        save_model_dir=os.path.expanduser(f'~/nfs/result/acgan-iqt/phase2/experiment{num_experiment}/models'),
-        lr=5e-5,
-        num_epochs=100,
-        start_epoch=100
-    )
+    cfg = get_cfg_defaults()
+    cfg.merge_from_file('experiment.yaml')
+    cfg.freeze()
+
+    main(cfg)
