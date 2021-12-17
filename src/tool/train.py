@@ -5,7 +5,7 @@ from torch.nn.functional import adaptive_avg_pool2d
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
-from evaluate import calculate_correlation_coefficient
+from src.tool.evaluate import calculate_correlation_coefficient
 from src.tool.log import write_iteration_log
 
 
