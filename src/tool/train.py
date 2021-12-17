@@ -5,8 +5,8 @@ from torch.nn.functional import adaptive_avg_pool2d
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
-from src.tool.evaluate import calculate_correlation_coefficient
-from src.tool.log import write_iteration_log
+from src.modeling.evaluate import calculate_correlation_coefficient
+from src.modeling.log import write_iteration_log
 
 
 def img_transform(img):
