@@ -13,7 +13,7 @@ def main(args):
 
     dataloaders, datasets_size = create_dataloaders(
         Path(args.data_dir),
-        phase=args.phase,
+        phase=2,
         batch_size=args.batch_size,
         num_workers=args.num_workers
     )
@@ -39,7 +39,6 @@ if __name__ == '__main__':
                         type=str,
                         help='Root directory for PIPAL dataset')
     parser.add_argument('--netD_path', required=True, type=str, help='Load model path')
-    parser.add_argument('--phase', default='phase1', type=str, choices=['phase1', 'phase2'])
     parser.add_argument('--batch_size', default=16, type=int)
     parser.add_argument('--num_workers', default=10, type=int)
 

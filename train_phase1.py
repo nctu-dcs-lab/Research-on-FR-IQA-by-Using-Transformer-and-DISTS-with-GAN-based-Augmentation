@@ -34,7 +34,7 @@ def main(cfg):
 
     dataloaders, datasets_size = create_dataloaders(
         Path(cfg.DATASETS.ROOT_DIR),
-        phase='phase1',
+        phase=1,
         batch_size=cfg.DATASETS.BATCH_SIZE,
         num_workers=cfg.DATASETS.NUM_WORKERS
     )

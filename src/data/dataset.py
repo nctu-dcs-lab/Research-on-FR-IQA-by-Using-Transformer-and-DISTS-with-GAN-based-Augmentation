@@ -9,7 +9,7 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision.transforms import transforms
 
 
-def transform(ref_img, dist_img, mode='train', phase='phase1'):
+def transform(ref_img, dist_img, mode='train', phase=1):
     if mode == 'train':
         # Random crop
         i, j, h, w = transforms.RandomCrop.get_params(ref_img, output_size=(192, 192))
@@ -33,7 +33,7 @@ def transform(ref_img, dist_img, mode='train', phase='phase1'):
 
         return ref_img, dist_img
 
-    elif phase == 'phase1':
+    elif phase == 1:
         ref_img = TF.center_crop(ref_img, 192)
         dist_img = TF.center_crop(dist_img, 192)
 
@@ -42,7 +42,7 @@ def transform(ref_img, dist_img, mode='train', phase='phase1'):
 
         return ref_img, dist_img
 
-    elif phase == 'phase2':
+    elif phase == 2:
         ref_imgs = TF.five_crop(ref_img, 192)
         dist_imgs = TF.five_crop(dist_img, 192)
 
@@ -59,7 +59,7 @@ def transform(ref_img, dist_img, mode='train', phase='phase1'):
 
 
 class PIPAL(Dataset):
-    def __init__(self, root_dir, mode='train', phase='phase1'):
+    def __init__(self, root_dir, mode='train', phase=1):
         dist_type = {
             '00': 0,
             '01': 12,
@@ -109,7 +109,7 @@ class PIPAL(Dataset):
         return ref_img, dist_img, self.scores[idx], self.categories[idx], self.origin_scores[idx]
 
 
-def create_dataloaders(data_dir, phase='phase1', batch_size=16, num_workers=10):
+def create_dataloaders(data_dir, phase=1, batch_size=16, num_workers=10):
     # Dataset
     datasets = {
         x: PIPAL(root_dir=data_dir,
