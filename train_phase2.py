@@ -41,9 +41,11 @@ def main(cfg):
         'netD': MultiTask(pretrained=True).to(device)
     }
 
-    model['netG'].load_state_dict(torch.load(cfg.TRAIN.RESUME.NET_G))
+    if cfg.TRAIN.RESUME.NET_G:
+        model['netG'].load_state_dict(torch.load(cfg.TRAIN.RESUME.NET_G))
     model['netG'].eval()
-    model['netD'].load_state_dict(torch.load(cfg.TRAIN.RESUME.NET_D))
+    if cfg.TRAIN.RESUME.NET_D:
+        model['netD'].load_state_dict(torch.load(cfg.TRAIN.RESUME.NET_D))
 
     loss = {
         'mse_loss': nn.MSELoss()
@@ -116,6 +118,7 @@ if __name__ == '__main__':
         cfg.merge_from_file(args.config)
     except:
         print('Using default configuration file')
+        print('Incorrect to train phase2 without loading phase1 weight')
 
     cfg.freeze()
 
