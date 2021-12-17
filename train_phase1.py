@@ -1,3 +1,4 @@
+import argparse
 import math
 import os
 import shutil
@@ -113,7 +114,16 @@ def main(cfg):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--config', type=str, help='Configuration YAML file for train phase1')
+    args = parser.parse_args()
+
     cfg = get_cfg_defaults()
-    cfg.merge_from_file('experiment.yaml')
+    try:
+        cfg.merge_from_file(args.config)
+    except:
+        print('Using default configuration file')
+
     cfg.freeze()
     main(cfg)
