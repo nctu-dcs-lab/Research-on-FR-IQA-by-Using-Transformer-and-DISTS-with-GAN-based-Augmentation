@@ -16,8 +16,6 @@ from src.modeling.evaluate import evaluate_phase2
 from src.modeling.module import Generator, MultiTask
 from src.tool.train import train_phase2
 
-torch.multiprocessing.set_sharing_strategy('file_system')
-
 
 def main(cfg):
     if cfg.TRAIN.WEIGHT_DIR and not os.path.isdir(cfg.TRAIN.WEIGHT_DIR):
