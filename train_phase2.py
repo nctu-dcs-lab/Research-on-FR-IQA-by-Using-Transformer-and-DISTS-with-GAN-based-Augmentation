@@ -36,7 +36,7 @@ def main(cfg):
     # Set Up Model
     model = {
         'netG': Generator().to(device),
-        'netD': MultiTask(pretrained=True).to(device)
+        'netD': MultiTask(cfg).to(device)
     }
 
     if cfg.TRAIN.RESUME.NET_G:

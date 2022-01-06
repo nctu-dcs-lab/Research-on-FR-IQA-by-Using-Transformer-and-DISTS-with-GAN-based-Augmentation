@@ -5,13 +5,65 @@ import torch
 import torch.nn as nn
 
 
-class FeatureExtractor(nn.Module):
-    def __init__(self, pretrained=True):
+class FeatureExtractorInceptionResNetV2(nn.Module):
+    def __init__(self, level='low'):
         super().__init__()
 
-        inception_resnet_v2_pretrained = timm.create_model('inception_resnet_v2', pretrained=pretrained)
+        inception_resnet_v2_pretrained = timm.create_model('inception_resnet_v2', pretrained=True)
         inception_resnet_v2_pretrained_features = list(inception_resnet_v2_pretrained.children())
 
+        if level == 'low':
+            self.slice1 = nn.Sequential(*inception_resnet_v2_pretrained_features[:8])
+            self.slice2 = nn.Sequential(*inception_resnet_v2_pretrained_features[8][:2])
+            self.slice3 = nn.Sequential(*inception_resnet_v2_pretrained_features[8][2:4])
+            self.slice4 = nn.Sequential(*inception_resnet_v2_pretrained_features[8][4:6])
+            self.slice5 = nn.Sequential(*inception_resnet_v2_pretrained_features[8][6:8])
+            self.slice6 = nn.Sequential(*inception_resnet_v2_pretrained_features[8][8:10])
+
+        elif level == 'medium':
+            self.slice1 = nn.Sequential(*inception_resnet_v2_pretrained_features[:10])
+            self.slice2 = nn.Sequential(*inception_resnet_v2_pretrained_features[10][:4])
+            self.slice3 = nn.Sequential(*inception_resnet_v2_pretrained_features[10][4:8])
+            self.slice4 = nn.Sequential(*inception_resnet_v2_pretrained_features[10][8:12])
+            self.slice5 = nn.Sequential(*inception_resnet_v2_pretrained_features[10][12:16])
+            self.slice6 = nn.Sequential(*inception_resnet_v2_pretrained_features[10][16:])
+
+        elif level == 'high':
+            self.slice1 = nn.Sequential(*inception_resnet_v2_pretrained_features[:12])
+            self.slice2 = nn.Sequential(*inception_resnet_v2_pretrained_features[12][:2])
+            self.slice3 = nn.Sequential(*inception_resnet_v2_pretrained_features[12][2:4])
+            self.slice4 = nn.Sequential(*inception_resnet_v2_pretrained_features[12][4:6])
+            self.slice5 = nn.Sequential(*inception_resnet_v2_pretrained_features[12][6:8])
+            self.slice6 = nn.Sequential(*inception_resnet_v2_pretrained_features[12][8:],
+                                        inception_resnet_v2_pretrained_features[13])
+
+        # default using low level feature
+        else:
+            self.slice1 = nn.Sequential(*inception_resnet_v2_pretrained_features[:8])
+            self.slice2 = nn.Sequential(*inception_resnet_v2_pretrained_features[8][:2])
+            self.slice3 = nn.Sequential(*inception_resnet_v2_pretrained_features[8][2:4])
+            self.slice4 = nn.Sequential(*inception_resnet_v2_pretrained_features[8][4:6])
+            self.slice5 = nn.Sequential(*inception_resnet_v2_pretrained_features[8][6:8])
+            self.slice6 = nn.Sequential(*inception_resnet_v2_pretrained_features[8][8:10])
+
+    def forward(self, x):
+        feat0 = self.slice1(x)
+        feat1 = self.slice2(feat0)
+        feat2 = self.slice3(feat1)
+        feat3 = self.slice4(feat2)
+        feat4 = self.slice5(feat3)
+        feat5 = self.slice6(feat4)
+
+        return torch.cat((feat0, feat1, feat2, feat3, feat4, feat5), 1)
+
+
+class MixedFeatureExtractorInceptionResNetV2(nn.Module):
+    def __init__(self):
+        super().__init__()
+        inception_resnet_v2_pretrained = timm.create_model('inception_resnet_v2', pretrained=True)
+        inception_resnet_v2_pretrained_features = list(inception_resnet_v2_pretrained.children())
+
+        # low level feature block
         self.slice1 = nn.Sequential(*inception_resnet_v2_pretrained_features[:8])
         self.slice2 = nn.Sequential(*inception_resnet_v2_pretrained_features[8][:2])
         self.slice3 = nn.Sequential(*inception_resnet_v2_pretrained_features[8][2:4])
@@ -19,15 +71,52 @@ class FeatureExtractor(nn.Module):
         self.slice5 = nn.Sequential(*inception_resnet_v2_pretrained_features[8][6:8])
         self.slice6 = nn.Sequential(*inception_resnet_v2_pretrained_features[8][8:10])
 
-    def forward(self, x):
-        mixed_5b = self.slice1(x)
-        block35_2 = self.slice2(mixed_5b)
-        block35_4 = self.slice3(block35_2)
-        block35_6 = self.slice4(block35_4)
-        block35_8 = self.slice5(block35_6)
-        block35_10 = self.slice6(block35_8)
+        # medium level feature block
+        self.slice7 = nn.Sequential(*inception_resnet_v2_pretrained_features[9:10])
+        self.slice8 = nn.Sequential(*inception_resnet_v2_pretrained_features[10][:4])
+        self.slice9 = nn.Sequential(*inception_resnet_v2_pretrained_features[10][4:8])
+        self.slice10 = nn.Sequential(*inception_resnet_v2_pretrained_features[10][8:12])
+        self.slice11 = nn.Sequential(*inception_resnet_v2_pretrained_features[10][12:16])
+        self.slice12 = nn.Sequential(*inception_resnet_v2_pretrained_features[10][16:])
 
-        return torch.cat((mixed_5b, block35_2, block35_4, block35_6, block35_8, block35_10), 1)
+        # high level feature block
+        self.slice13 = nn.Sequential(*inception_resnet_v2_pretrained_features[11:12])
+        self.slice14 = nn.Sequential(*inception_resnet_v2_pretrained_features[12][:2])
+        self.slice15 = nn.Sequential(*inception_resnet_v2_pretrained_features[12][2:4])
+        self.slice16 = nn.Sequential(*inception_resnet_v2_pretrained_features[12][4:8])
+        self.slice17 = nn.Sequential(*inception_resnet_v2_pretrained_features[12][8:16])
+        self.slice18 = nn.Sequential(*inception_resnet_v2_pretrained_features[12][8:],
+                                     inception_resnet_v2_pretrained_features[13])
+
+    def forward(self, x):
+        # low level feature
+        feat0 = self.slice1(x)
+        feat1 = self.slice2(feat0)
+        feat2 = self.slice3(feat1)
+        feat3 = self.slice4(feat2)
+        feat4 = self.slice5(feat3)
+        feat5 = self.slice6(feat4)
+        low_level_feat = torch.cat((feat0, feat1, feat2, feat3, feat4, feat5), 1)
+
+        # medium level feature
+        feat6 = self.slice7(feat5)
+        feat7 = self.slice8(feat6)
+        feat8 = self.slice9(feat7)
+        feat9 = self.slice10(feat8)
+        feat10 = self.slice11(feat9)
+        feat11 = self.slice12(feat10)
+        medium_level_feat = torch.cat((feat6, feat7, feat8, feat9, feat10, feat11), 1)
+
+        # high level feature
+        feat12 = self.slice13(feat11)
+        feat13 = self.slice14(feat12)
+        feat14 = self.slice15(feat13)
+        feat15 = self.slice16(feat14)
+        feat16 = self.slice17(feat15)
+        feat17 = self.slice18(feat16)
+        high_level_feat = torch.cat((feat12, feat13, feat14, feat15, feat16, feat17), 1)
+
+        return low_level_feat, medium_level_feat, high_level_feat
 
 
 class FeatureProjection(nn.Module):
@@ -47,6 +136,42 @@ class FeatureProjection(nn.Module):
         quality_embedding = self.flatten_conv2d(feat).permute(0, 2, 1)
         extra_quality_embedding = self.quality_embed.weight.unsqueeze(0).repeat(batch_size, 1, 1)
         quality_embedding = torch.cat((extra_quality_embedding, quality_embedding), 1)
+
+        position_embedding = self.position_embed.weight.unsqueeze(0).repeat(batch_size, 1, 1)
+
+        return quality_embedding + position_embedding
+
+
+class MixedFeatureProjection(nn.Module):
+    def __init__(self, num_pos=21 * 21 + 10 * 10 + 4 * 4, input_dims=(1920, 6528, 12480), hidden_dim=256):
+        super().__init__()
+
+        self.low_level_flatten_conv2d = nn.Sequential(
+            nn.Conv2d(input_dims[0], hidden_dim, 1),
+            nn.Flatten(start_dim=2, end_dim=-1)
+        )
+
+        self.medium_level_flatten_conv2d = nn.Sequential(
+            nn.Conv2d(input_dims[1], hidden_dim, 1),
+            nn.Flatten(start_dim=2, end_dim=-1)
+        )
+
+        self.high_level_flatten_conv2d = nn.Sequential(
+            nn.Conv2d(input_dims[2], hidden_dim, 1),
+            nn.Flatten(start_dim=2, end_dim=-1)
+        )
+
+        self.quality_embed = nn.Embedding(1, hidden_dim)
+        self.position_embed = nn.Embedding(num_pos + 1, hidden_dim)
+
+    def forward(self, feats):
+        batch_size = feats[0].shape[0]
+        low_level_quality_embedding = self.low_level_flatten_conv2d(feats[0]).permute(0, 2, 1)
+        medium_level_quality_embedding = self.medium_level_flatten_conv2d(feats[1]).permute(0, 2, 1)
+        high_level_quality_embedding = self.high_level_flatten_conv2d(feats[2]).permute(0, 2, 1)
+        extra_quality_embedding = self.quality_embed.weight.unsqueeze(0).repeat(batch_size, 1, 1)
+        quality_embedding = torch.cat((extra_quality_embedding, low_level_quality_embedding,
+                                       medium_level_quality_embedding, high_level_quality_embedding), 1)
 
         position_embedding = self.position_embed.weight.unsqueeze(0).repeat(batch_size, 1, 1)
 
@@ -267,23 +392,35 @@ class Discriminator(nn.Module):
 
 
 class Evaluator(nn.Module):
-    """
-    Learned perceptual metric
-    """
-
-    def __init__(self):
+    def __init__(self, cfg):
         super().__init__()
+        self.feat_extraction_level = cfg.MODEL.FEAT_EXTRACTOR_LEVEL
 
-        self.feat_proj = FeatureProjection(num_pos=441, hidden_dim=128)
-        self.transformer = Transformer(d_model=128,
-                                       nhead=4,
-                                       num_encoder_layers=1,
-                                       num_decoder_layers=1,
-                                       dim_feedforward=1024)
-        self.mlp_head = MLPHead(in_dim=128, hidden_dim=128)
+        if cfg.MODEL.FEAT_EXTRACTOR_LEVEL == 'low':
+            self.feat_proj = FeatureProjection(num_pos=21 * 21, hidden_dim=cfg.MODEL.TRANSFORMER_DIM)
+        elif cfg.MODEL.FEAT_EXTRACTOR_LEVEL == 'medium':
+            self.feat_proj = FeatureProjection(num_pos=10 * 10, input_dim=6528, hidden_dim=cfg.MODEL.TRANSFORMER_DIM)
+        elif cfg.MODEL.FEAT_EXTRACTOR_LEVEL == 'high':
+            self.feat_proj = FeatureProjection(num_pos=4 * 4, input_dim=12480, hidden_dim=cfg.MODEL.TRANSFORMER_DIM)
+        elif cfg.MODEL.FEAT_EXTRACTOR_LEVEL == 'mixed':
+            self.feat_proj = MixedFeatureProjection(hidden_dim=cfg.MODEL.TRANSFORMER_DIM)
+        else:
+            self.feat_proj = FeatureProjection(num_pos=21 * 21, hidden_dim=cfg.MODEL.TRANSFORMER_DIM)
+
+        self.transformer = Transformer(
+            d_model=cfg.MODEL.TRANSFORMER_DIM,
+            nhead=cfg.MODEL.MHA_NUM_HEADS,
+            num_encoder_layers=cfg.MODEL.TRANSFORMER_LAYERS,
+            num_decoder_layers=cfg.MODEL.TRANSFORMER_LAYERS,
+            dim_feedforward=cfg.MODEL.FEAT_DIM
+        )
+        self.mlp_head = MLPHead(in_dim=cfg.MODEL.TRANSFORMER_DIM, hidden_dim=cfg.MODEL.HEAD_DIM)
 
     def forward(self, ref_feat, dist_feat):
-        diff_feat = ref_feat - dist_feat
+        if self.feat_extraction_level == 'mixed':
+            diff_feat = tuple(map(lambda i, j: i - j, ref_feat, dist_feat))
+        else:
+            diff_feat = ref_feat - dist_feat
 
         ref_proj_feat = self.feat_proj(ref_feat)
         diff_proj_feat = self.feat_proj(diff_feat)
@@ -308,15 +445,18 @@ class Classifier(nn.Module):
 
 
 class MultiTask(nn.Module):
-    def __init__(self, pretrained=True):
+    def __init__(self, cfg):
         super().__init__()
+        if cfg.MODEL.FEAT_EXTRACTOR_LEVEL == 'mixed':
+            self.feat_extractor = MixedFeatureExtractorInceptionResNetV2()
+        else:
+            self.feat_extractor = FeatureExtractorInceptionResNetV2(level=cfg.MODEL.FEAT_EXTRACTOR_LEVEL)
 
-        self.feature_extractor = FeatureExtractor(pretrained=pretrained)
         self.discriminator = Discriminator()
         self.classifier = Classifier()
-        self.evaluator = Evaluator()
+        self.evaluator = Evaluator(cfg)
 
     def forward(self, ref_img, dist_img):
-        ref_feat = self.feature_extractor(ref_img)
-        dist_feat = self.feature_extractor(dist_img)
+        ref_feat = self.feat_extractor(ref_img)
+        dist_feat = self.feat_extractor(dist_img)
         return self.discriminator(dist_feat).view(-1), self.classifier(dist_feat), self.evaluator(ref_feat, dist_feat)
