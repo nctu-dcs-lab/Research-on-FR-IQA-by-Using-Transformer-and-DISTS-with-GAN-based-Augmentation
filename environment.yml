@@ -3,20 +3,26 @@ channels:
   - pytorch
   - nvidia
   - conda-forge
+  - defaults
 dependencies:
   - _libgcc_mutex=0.1=conda_forge
   - _openmp_mutex=4.5=1_llvm
   - absl-py=0.15.0=pyhd8ed1ab_0
   - aiohttp=3.7.4.post0=py39h3811e60_0
   - alsa-lib=1.2.3=h516909a_0
+  - anyio=3.4.0=py39hf3d152e_0
   - appdirs=1.4.4=pyh9f0ad1d_0
+  - argon2-cffi=21.1.0=py39h3811e60_2
   - async-timeout=3.0.1=py_1000
+  - async_generator=1.10=py_0
   - attrs=21.2.0=pyhd8ed1ab_0
+  - babel=2.9.1=pyh44b312d_0
   - backcall=0.2.0=pyh9f0ad1d_0
   - backports=1.0=py_2
   - backports.functools_lru_cache=1.6.4=pyhd8ed1ab_0
   - blas=2.111=mkl
   - blas-devel=3.9.0=11_linux64_mkl
+  - bleach=4.1.0=pyhd8ed1ab_0
   - blinker=1.4=py_1
   - blosc=1.21.0=h9c3ff4c_0
   - brotli=1.0.9=h7f98852_6
@@ -45,6 +51,7 @@ dependencies:
   - dbus=1.13.6=h48d8840_2
   - debugpy=1.4.1=py39he80948d_0
   - decorator=5.1.0=pyhd8ed1ab_0
+  - defusedxml=0.7.1=pyhd8ed1ab_0
   - entrypoints=0.3=pyhd8ed1ab_1003
   - expat=2.4.1=h9c3ff4c_0
   - fontconfig=2.13.1=hba837de_1005
@@ -65,6 +72,7 @@ dependencies:
   - imagecodecs=2021.7.30=py39h44211f0_1
   - imageio=2.13.1=pyhd8ed1ab_1
   - importlib-metadata=4.8.1=py39hf3d152e_0
+  - importlib_resources=5.4.0=pyhd8ed1ab_0
   - ipykernel=6.4.1=py39hef51801_0
   - ipython=7.27.0=py39hef51801_0
   - ipython_genutils=0.2.0=py_1
@@ -72,8 +80,13 @@ dependencies:
   - jedi=0.18.0=py39hf3d152e_2
   - joblib=1.0.1=pyhd8ed1ab_0
   - jpeg=9d=h36c2ea0_0
+  - json5=0.9.5=pyh9f0ad1d_0
   - jupyter_client=7.0.2=pyhd8ed1ab_0
   - jupyter_core=4.7.1=py39hf3d152e_0
+  - jupyter_server=1.13.1=pyhd8ed1ab_0
+  - jupyterlab=2.3.1=pyhd3eb1b0_0
+  - jupyterlab_pygments=0.1.2=pyh9f0ad1d_0
+  - jupyterlab_server=1.2.0=py_0
   - jxrlib=1.1=h7f98852_2
   - kiwisolver=1.3.2=py39h1a9c180_0
   - krb5=1.19.2=hcc1bbae_2
@@ -125,19 +138,24 @@ dependencies:
   - locket=0.2.0=py_2
   - lz4-c=1.9.3=h9c3ff4c_1
   - markdown=3.3.4=pyhd8ed1ab_0
+  - markupsafe=2.0.1=py39h3811e60_1
   - matplotlib=3.4.3=py39hf3d152e_1
   - matplotlib-base=3.4.3=py39h2fa2bec_1
   - matplotlib-inline=0.1.3=pyhd8ed1ab_0
+  - mistune=0.8.4=py39h3811e60_1005
   - mkl=2021.3.0=h726a3e6_557
   - mkl-devel=2021.3.0=ha770c72_558
   - mkl-include=2021.3.0=h726a3e6_557
   - multidict=5.2.0=py39h3811e60_0
   - mysql-common=8.0.25=ha770c72_2
   - mysql-libs=8.0.25=hfa10184_2
+  - nbclassic=0.3.4=pyhd8ed1ab_0
+  - nbformat=5.1.3=pyhd8ed1ab_0
   - ncurses=6.2=h58526e2_4
   - nest-asyncio=1.5.1=pyhd8ed1ab_0
   - networkx=2.6.3=pyhd8ed1ab_1
   - ninja=1.10.2=h4bd325d_0
+  - nodejs=14.17.4=h92b4a50_0
   - nspr=4.30=h9c3ff4c_0
   - nss=3.69=hb5efdd6_0
   - numpy=1.21.2=py39hdbf815f_0
@@ -146,6 +164,8 @@ dependencies:
   - openjpeg=2.4.0=hb52868f_1
   - openssl=1.1.1l=h7f98852_0
   - pandas=1.3.3=py39hde0f152_0
+  - pandoc=2.16.2=h7f98852_0
+  - pandocfilters=1.5.0=pyhd8ed1ab_0
   - parso=0.8.2=pyhd8ed1ab_0
   - partd=1.2.0=pyhd8ed1ab_0
   - pcre=8.45=h9c3ff4c_0
@@ -154,6 +174,7 @@ dependencies:
   - pillow=8.3.2=py39ha612740_0
   - pip=21.2.4=pyhd8ed1ab_0
   - pooch=1.5.2=pyhd8ed1ab_0
+  - prometheus_client=0.12.0=pyhd8ed1ab_0
   - prompt-toolkit=3.0.20=pyha770c72_0
   - protobuf=3.18.0=py39he80948d_0
   - pthread-stubs=0.4=h36c2ea0_1001
@@ -170,6 +191,7 @@ dependencies:
   - pyqt5-sip=4.19.18=py39he80948d_7
   - pyqtchart=5.12=py39h0fcd23e_7
   - pyqtwebengine=5.12.1=py39h0fcd23e_7
+  - pyrsistent=0.18.0=py39h3811e60_0
   - pysocks=1.7.1=py39hf3d152e_3
   - python=3.9.7=h49503c6_0_cpython
   - python-dateutil=2.8.2=pyhd8ed1ab_0
@@ -188,14 +210,18 @@ dependencies:
   - scikit-image=0.18.3=py39hde0f152_1
   - scikit-learn=1.0=py39h7c5d8c9_1
   - scipy=1.7.1=py39hee8e79c_0
+  - send2trash=1.8.0=pyhd8ed1ab_0
   - setuptools=58.0.4=py39hf3d152e_0
   - six=1.16.0=pyh6c4a22f_0
   - snappy=1.1.8=he1b5a44_3
+  - sniffio=1.2.0=py39hf3d152e_2
   - sqlite=3.36.0=h9cd32fc_1
   - tbb=2021.3.0=h4bd325d_0
   - tensorboard=2.6.0=pyhd8ed1ab_1
   - tensorboard-data-server=0.6.0=py39h95dcef6_0
   - tensorboard-plugin-wit=1.8.0=pyh44b312d_0
+  - terminado=0.12.1=py39hf3d152e_1
+  - testpath=0.5.0=pyhd8ed1ab_0
   - threadpoolctl=2.2.0=pyh8a188c0_0
   - tifffile=2021.11.2=pyhd8ed1ab_0
   - tk=8.6.11=h27826a3_1
@@ -210,11 +236,14 @@ dependencies:
   - tzdata=2021a=he74cb21_1
   - urllib3=1.26.7=pyhd8ed1ab_0
   - wcwidth=0.2.5=pyh9f0ad1d_2
+  - webencodings=0.5.1=py_1
+  - websocket-client=1.2.3=pyhd8ed1ab_0
   - werkzeug=2.0.1=pyhd8ed1ab_0
   - wheel=0.37.0=pyhd8ed1ab_1
   - xorg-libxau=1.0.9=h7f98852_0
   - xorg-libxdmcp=1.1.3=h7f98852_0
   - xz=5.2.5=h516909a_1
+  - yacs=0.1.6=py_0
   - yaml=0.2.5=h516909a_0
   - yarl=1.7.0=py39h3811e60_0
   - zeromq=4.3.4=h9c3ff4c_1
@@ -223,39 +252,27 @@ dependencies:
   - zlib=1.2.11=h516909a_1010
   - zstd=1.5.0=ha95c52a_0
   - pip:
-    - argon2-cffi==21.1.0
-    - bleach==4.1.0
-    - defusedxml==0.7.1
     - dists-pytorch==0.1
     - filelock==3.3.2
     - ipywidgets==7.6.5
     - iqa-pytorch==0.1
     - jinja2==3.0.1
     - jsonschema==3.2.0
-    - jupyterlab-pygments==0.1.2
     - jupyterlab-widgets==1.0.2
     - lpips==0.1.4
-    - markupsafe==2.0.1
-    - mistune==0.8.4
     - msgpack==1.0.2
     - nbclient==0.5.4
     - nbconvert==6.1.0
-    - nbformat==5.1.3
     - notebook==6.4.3
     - opencv-python==4.5.3.56
     - packaging==21.0
-    - pandocfilters==1.5.0
     - prometheus-client==0.11.0
-    - pyrsistent==0.18.0
     - pytorch-fid==0.2.1
     - ray==1.7.0
     - redis==3.5.3
-    - send2trash==1.8.0
     - tabulate==0.8.9
     - tensorboardx==2.4
-    - terminado==0.12.1
-    - testpath==0.5.0
     - timm==0.4.12
     - torchinfo==1.5.3
-    - webencodings==0.5.1
     - widgetsnbextension==3.5.1
+prefix: /home/rhome/test/.conda/envs/iqa
