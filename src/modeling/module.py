@@ -54,7 +54,7 @@ class FeatureExtractorInceptionResNetV2(nn.Module):
         feat4 = self.slice5(feat3)
         feat5 = self.slice6(feat4)
 
-        return torch.cat((feat0, feat1, feat2, feat3, feat4, feat5), 1)
+        return feat0, feat1, feat2, feat3, feat4, feat5
 
 
 class MixedFeatureExtractorInceptionResNetV2(nn.Module):
@@ -96,7 +96,7 @@ class MixedFeatureExtractorInceptionResNetV2(nn.Module):
         feat3 = self.slice4(feat2)
         feat4 = self.slice5(feat3)
         feat5 = self.slice6(feat4)
-        low_level_feat = torch.cat((feat0, feat1, feat2, feat3, feat4, feat5), 1)
+        low_level_feat = (feat0, feat1, feat2, feat3, feat4, feat5)
 
         # medium level feature
         feat6 = self.slice7(feat5)
@@ -105,7 +105,7 @@ class MixedFeatureExtractorInceptionResNetV2(nn.Module):
         feat9 = self.slice10(feat8)
         feat10 = self.slice11(feat9)
         feat11 = self.slice12(feat10)
-        medium_level_feat = torch.cat((feat6, feat7, feat8, feat9, feat10, feat11), 1)
+        medium_level_feat = (feat6, feat7, feat8, feat9, feat10, feat11)
 
         # high level feature
         feat12 = self.slice13(feat11)
@@ -114,9 +114,9 @@ class MixedFeatureExtractorInceptionResNetV2(nn.Module):
         feat15 = self.slice16(feat14)
         feat16 = self.slice17(feat15)
         feat17 = self.slice18(feat16)
-        high_level_feat = torch.cat((feat12, feat13, feat14, feat15, feat16, feat17), 1)
+        high_level_feat = (feat12, feat13, feat14, feat15, feat16, feat17)
 
-        return low_level_feat, medium_level_feat, high_level_feat
+        return low_level_feat + medium_level_feat + high_level_feat
 
 
 class FeatureProjection(nn.Module):
@@ -132,6 +132,7 @@ class FeatureProjection(nn.Module):
         self.position_embed = nn.Embedding(num_pos + 1, hidden_dim)
 
     def forward(self, feat):
+        feat = torch.cat(feat, 1)
         batch_size = feat.shape[0]
         quality_embedding = self.flatten_conv2d(feat).permute(0, 2, 1)
         extra_quality_embedding = self.quality_embed.weight.unsqueeze(0).repeat(batch_size, 1, 1)
@@ -165,10 +166,13 @@ class MixedFeatureProjection(nn.Module):
         self.position_embed = nn.Embedding(num_pos + 1, hidden_dim)
 
     def forward(self, feats):
-        batch_size = feats[0].shape[0]
-        low_level_quality_embedding = self.low_level_flatten_conv2d(feats[0]).permute(0, 2, 1)
-        medium_level_quality_embedding = self.medium_level_flatten_conv2d(feats[1]).permute(0, 2, 1)
-        high_level_quality_embedding = self.high_level_flatten_conv2d(feats[2]).permute(0, 2, 1)
+        low_level_feats = torch.cat(feats[0:6], 1)
+        medium_level_feats = torch.cat(feats[6:12], 1)
+        high_level_feats = torch.cat(feats[12:18], 1)
+        batch_size = low_level_feats.shape[0]
+        low_level_quality_embedding = self.low_level_flatten_conv2d(low_level_feats).permute(0, 2, 1)
+        medium_level_quality_embedding = self.medium_level_flatten_conv2d(medium_level_feats).permute(0, 2, 1)
+        high_level_quality_embedding = self.high_level_flatten_conv2d(high_level_feats).permute(0, 2, 1)
         extra_quality_embedding = self.quality_embed.weight.unsqueeze(0).repeat(batch_size, 1, 1)
         quality_embedding = torch.cat((extra_quality_embedding, low_level_quality_embedding,
                                        medium_level_quality_embedding, high_level_quality_embedding), 1)
@@ -375,14 +379,14 @@ class UNetUp(nn.Module):
 
 
 class Discriminator(nn.Module):
-    def __init__(self):
+    def __init__(self, input_dim, hidden_dim=512):
         super().__init__()
 
         self.avgpool = nn.AdaptiveAvgPool2d(output_size=1)
         self.classifer = nn.Sequential(
-            nn.Linear(1920, 512),
+            nn.Linear(input_dim, hidden_dim),
             nn.LeakyReLU(inplace=True),
-            nn.Linear(512, 1),
+            nn.Linear(hidden_dim, 1),
             nn.Sigmoid()
         )
 
@@ -394,7 +398,6 @@ class Discriminator(nn.Module):
 class Evaluator(nn.Module):
     def __init__(self, cfg):
         super().__init__()
-        self.feat_extraction_level = cfg.MODEL.FEAT_EXTRACTOR_LEVEL
 
         if cfg.MODEL.FEAT_EXTRACTOR_LEVEL == 'low':
             self.feat_proj = FeatureProjection(num_pos=21 * 21, hidden_dim=cfg.MODEL.TRANSFORMER_DIM)
@@ -417,10 +420,7 @@ class Evaluator(nn.Module):
         self.mlp_head = MLPHead(in_dim=cfg.MODEL.TRANSFORMER_DIM, hidden_dim=cfg.MODEL.HEAD_DIM)
 
     def forward(self, ref_feat, dist_feat):
-        if self.feat_extraction_level == 'mixed':
-            diff_feat = tuple(map(lambda i, j: i - j, ref_feat, dist_feat))
-        else:
-            diff_feat = ref_feat - dist_feat
+        diff_feat = tuple(map(lambda i, j: i - j, ref_feat, dist_feat))
 
         ref_proj_feat = self.feat_proj(ref_feat)
         diff_proj_feat = self.feat_proj(diff_feat)
@@ -429,14 +429,14 @@ class Evaluator(nn.Module):
 
 
 class Classifier(nn.Module):
-    def __init__(self, num_classes=116):
+    def __init__(self, input_dim, num_classes=116, hidden_dim=512):
         super().__init__()
 
         self.avgpool = nn.AdaptiveAvgPool2d(output_size=1)
         self.classifer = nn.Sequential(
-            nn.Linear(1920, 512),
+            nn.Linear(input_dim, hidden_dim),
             nn.LeakyReLU(inplace=True),
-            nn.Linear(512, num_classes)
+            nn.Linear(hidden_dim, num_classes)
         )
 
     def forward(self, feat):
@@ -447,16 +447,26 @@ class Classifier(nn.Module):
 class MultiTask(nn.Module):
     def __init__(self, cfg):
         super().__init__()
+        assert cfg.MODEL.FEAT_EXTRACTOR_LEVEL in ['low', 'medium', 'high', 'mixed']
+
+        feat_dim = {
+            'low': 320,
+            'medium': 1088,
+            'high': 2080,
+            'mixed': 2080
+        }
+
         if cfg.MODEL.FEAT_EXTRACTOR_LEVEL == 'mixed':
             self.feat_extractor = MixedFeatureExtractorInceptionResNetV2()
         else:
             self.feat_extractor = FeatureExtractorInceptionResNetV2(level=cfg.MODEL.FEAT_EXTRACTOR_LEVEL)
 
-        self.discriminator = Discriminator()
-        self.classifier = Classifier()
+        self.discriminator = Discriminator(input_dim=feat_dim[cfg.MODEL.FEAT_EXTRACTOR_LEVEL])
+        self.classifier = Classifier(input_dim=feat_dim[cfg.MODEL.FEAT_EXTRACTOR_LEVEL])
         self.evaluator = Evaluator(cfg)
 
     def forward(self, ref_img, dist_img):
         ref_feat = self.feat_extractor(ref_img)
         dist_feat = self.feat_extractor(dist_img)
-        return self.discriminator(dist_feat).view(-1), self.classifier(dist_feat), self.evaluator(ref_feat, dist_feat)
+        return self.discriminator(dist_feat[-1]).view(-1), self.classifier(dist_feat[-1]), self.evaluator(ref_feat,
+                                                                                                          dist_feat)
