@@ -174,7 +174,6 @@ dependencies:
   - pillow=8.3.2=py39ha612740_0
   - pip=21.2.4=pyhd8ed1ab_0
   - pooch=1.5.2=pyhd8ed1ab_0
-  - prometheus_client=0.12.0=pyhd8ed1ab_0
   - prompt-toolkit=3.0.20=pyha770c72_0
   - protobuf=3.18.0=py39he80948d_0
   - pthread-stubs=0.4=h36c2ea0_1001
@@ -275,4 +274,4 @@ dependencies:
     - timm==0.4.12
     - torchinfo==1.5.3
     - widgetsnbextension==3.5.1
-prefix: /home/rhome/test/.conda/envs/iqa
+prefix: /home/rhome/nelson/.conda/envs/iqa
