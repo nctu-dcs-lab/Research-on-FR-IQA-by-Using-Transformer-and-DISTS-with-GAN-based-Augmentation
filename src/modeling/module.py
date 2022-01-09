@@ -5,118 +5,53 @@ import torch
 import torch.nn as nn
 
 
-class FeatureExtractorInceptionResNetV2(nn.Module):
+class FeatureExtractionInceptionResNetV2(nn.Module):
     def __init__(self, level='low'):
         super().__init__()
 
         inception_resnet_v2_pretrained = timm.create_model('inception_resnet_v2', pretrained=True)
         inception_resnet_v2_pretrained_features = list(inception_resnet_v2_pretrained.children())
 
-        if level == 'low':
-            self.slice1 = nn.Sequential(*inception_resnet_v2_pretrained_features[:8])
-            self.slice2 = nn.Sequential(*inception_resnet_v2_pretrained_features[8][:2])
-            self.slice3 = nn.Sequential(*inception_resnet_v2_pretrained_features[8][2:4])
-            self.slice4 = nn.Sequential(*inception_resnet_v2_pretrained_features[8][4:6])
-            self.slice5 = nn.Sequential(*inception_resnet_v2_pretrained_features[8][6:8])
-            self.slice6 = nn.Sequential(*inception_resnet_v2_pretrained_features[8][8:10])
+        self.slices = nn.ModuleList([])
 
-        elif level == 'medium':
-            self.slice1 = nn.Sequential(*inception_resnet_v2_pretrained_features[:10])
-            self.slice2 = nn.Sequential(*inception_resnet_v2_pretrained_features[10][:4])
-            self.slice3 = nn.Sequential(*inception_resnet_v2_pretrained_features[10][4:8])
-            self.slice4 = nn.Sequential(*inception_resnet_v2_pretrained_features[10][8:12])
-            self.slice5 = nn.Sequential(*inception_resnet_v2_pretrained_features[10][12:16])
-            self.slice6 = nn.Sequential(*inception_resnet_v2_pretrained_features[10][16:])
+        if level == 'low':  # low level feature extraction backbone
+            self.slices.append(nn.Sequential(*inception_resnet_v2_pretrained_features[:8]))
+            for i in range(0, 10, 2):
+                self.slices.append(nn.Sequential(*inception_resnet_v2_pretrained_features[8][i:i + 2]))
 
-        elif level == 'high':
-            self.slice1 = nn.Sequential(*inception_resnet_v2_pretrained_features[:12])
-            self.slice2 = nn.Sequential(*inception_resnet_v2_pretrained_features[12][:2])
-            self.slice3 = nn.Sequential(*inception_resnet_v2_pretrained_features[12][2:4])
-            self.slice4 = nn.Sequential(*inception_resnet_v2_pretrained_features[12][4:6])
-            self.slice5 = nn.Sequential(*inception_resnet_v2_pretrained_features[12][6:8])
-            self.slice6 = nn.Sequential(*inception_resnet_v2_pretrained_features[12][8:],
-                                        inception_resnet_v2_pretrained_features[13])
+        elif level == 'medium':  # medium level feature extraction backbone
+            self.slices.append(nn.Sequential(*inception_resnet_v2_pretrained_features[:10]))
+            for i in range(0, 20, 4):
+                self.slices.append(nn.Sequential(*inception_resnet_v2_pretrained_features[10][i:i + 4]))
 
-        # default using low level feature
-        else:
-            self.slice1 = nn.Sequential(*inception_resnet_v2_pretrained_features[:8])
-            self.slice2 = nn.Sequential(*inception_resnet_v2_pretrained_features[8][:2])
-            self.slice3 = nn.Sequential(*inception_resnet_v2_pretrained_features[8][2:4])
-            self.slice4 = nn.Sequential(*inception_resnet_v2_pretrained_features[8][4:6])
-            self.slice5 = nn.Sequential(*inception_resnet_v2_pretrained_features[8][6:8])
-            self.slice6 = nn.Sequential(*inception_resnet_v2_pretrained_features[8][8:10])
+        elif level == 'high':  # high level feature extraction backbone
+            self.slices.append(nn.Sequential(*inception_resnet_v2_pretrained_features[:12]))
+            for i in range(0, 8, 2):
+                self.slices.append(nn.Sequential(*inception_resnet_v2_pretrained_features[12][i:i + 2]))
+            self.slices.append(nn.Sequential(*inception_resnet_v2_pretrained_features[12][8:],
+                                             inception_resnet_v2_pretrained_features[13]))
+        else:  # mixed level feature extraction backbone
+            self.slices.append(nn.Sequential(*inception_resnet_v2_pretrained_features[:8]))
+            for i in range(0, 10, 2):
+                self.slices.append(nn.Sequential(*inception_resnet_v2_pretrained_features[8][i:i + 2]))
 
-    def forward(self, x):
-        feat0 = self.slice1(x)
-        feat1 = self.slice2(feat0)
-        feat2 = self.slice3(feat1)
-        feat3 = self.slice4(feat2)
-        feat4 = self.slice5(feat3)
-        feat5 = self.slice6(feat4)
+            self.slices.append(nn.Sequential(*inception_resnet_v2_pretrained_features[9:10]))
+            for i in range(0, 20, 4):
+                self.slices.append(nn.Sequential(*inception_resnet_v2_pretrained_features[10][i:i + 4]))
 
-        return feat0, feat1, feat2, feat3, feat4, feat5
-
-
-class MixedFeatureExtractorInceptionResNetV2(nn.Module):
-    def __init__(self):
-        super().__init__()
-        inception_resnet_v2_pretrained = timm.create_model('inception_resnet_v2', pretrained=True)
-        inception_resnet_v2_pretrained_features = list(inception_resnet_v2_pretrained.children())
-
-        # low level feature block
-        self.slice1 = nn.Sequential(*inception_resnet_v2_pretrained_features[:8])
-        self.slice2 = nn.Sequential(*inception_resnet_v2_pretrained_features[8][:2])
-        self.slice3 = nn.Sequential(*inception_resnet_v2_pretrained_features[8][2:4])
-        self.slice4 = nn.Sequential(*inception_resnet_v2_pretrained_features[8][4:6])
-        self.slice5 = nn.Sequential(*inception_resnet_v2_pretrained_features[8][6:8])
-        self.slice6 = nn.Sequential(*inception_resnet_v2_pretrained_features[8][8:10])
-
-        # medium level feature block
-        self.slice7 = nn.Sequential(*inception_resnet_v2_pretrained_features[9:10])
-        self.slice8 = nn.Sequential(*inception_resnet_v2_pretrained_features[10][:4])
-        self.slice9 = nn.Sequential(*inception_resnet_v2_pretrained_features[10][4:8])
-        self.slice10 = nn.Sequential(*inception_resnet_v2_pretrained_features[10][8:12])
-        self.slice11 = nn.Sequential(*inception_resnet_v2_pretrained_features[10][12:16])
-        self.slice12 = nn.Sequential(*inception_resnet_v2_pretrained_features[10][16:])
-
-        # high level feature block
-        self.slice13 = nn.Sequential(*inception_resnet_v2_pretrained_features[11:12])
-        self.slice14 = nn.Sequential(*inception_resnet_v2_pretrained_features[12][:2])
-        self.slice15 = nn.Sequential(*inception_resnet_v2_pretrained_features[12][2:4])
-        self.slice16 = nn.Sequential(*inception_resnet_v2_pretrained_features[12][4:8])
-        self.slice17 = nn.Sequential(*inception_resnet_v2_pretrained_features[12][8:16])
-        self.slice18 = nn.Sequential(*inception_resnet_v2_pretrained_features[12][8:],
-                                     inception_resnet_v2_pretrained_features[13])
+            self.slices.append(nn.Sequential(*inception_resnet_v2_pretrained_features[11:12]))
+            for i in range(0, 8, 2):
+                self.slices.append(nn.Sequential(*inception_resnet_v2_pretrained_features[12][i:i + 2]))
+            self.slices.append(nn.Sequential(*inception_resnet_v2_pretrained_features[12][8:],
+                                             inception_resnet_v2_pretrained_features[13]))
 
     def forward(self, x):
-        # low level feature
-        feat0 = self.slice1(x)
-        feat1 = self.slice2(feat0)
-        feat2 = self.slice3(feat1)
-        feat3 = self.slice4(feat2)
-        feat4 = self.slice5(feat3)
-        feat5 = self.slice6(feat4)
-        low_level_feat = (feat0, feat1, feat2, feat3, feat4, feat5)
+        feats = []
+        for submodule in self.slices:
+            x = submodule(x)
+            feats.append(x)
 
-        # medium level feature
-        feat6 = self.slice7(feat5)
-        feat7 = self.slice8(feat6)
-        feat8 = self.slice9(feat7)
-        feat9 = self.slice10(feat8)
-        feat10 = self.slice11(feat9)
-        feat11 = self.slice12(feat10)
-        medium_level_feat = (feat6, feat7, feat8, feat9, feat10, feat11)
-
-        # high level feature
-        feat12 = self.slice13(feat11)
-        feat13 = self.slice14(feat12)
-        feat14 = self.slice15(feat13)
-        feat15 = self.slice16(feat14)
-        feat16 = self.slice17(feat15)
-        feat17 = self.slice18(feat16)
-        high_level_feat = (feat12, feat13, feat14, feat15, feat16, feat17)
-
-        return low_level_feat + medium_level_feat + high_level_feat
+        return tuple(feats)
 
 
 class FeatureProjection(nn.Module):
@@ -473,10 +408,7 @@ class MultiTask(nn.Module):
                 'num_pos': 21 * 21 + 10 * 10 + 4 * 4}
         }
 
-        if cfg.MODEL.FEAT_EXTRACTOR_LEVEL == 'mixed':
-            self.feat_extractor = MixedFeatureExtractorInceptionResNetV2()
-        else:
-            self.feat_extractor = FeatureExtractorInceptionResNetV2(level=cfg.MODEL.FEAT_EXTRACTOR_LEVEL)
+        self.feat_extraction = FeatureExtractionInceptionResNetV2(level=cfg.MODEL.FEAT_EXTRACTOR_LEVEL)
 
         self.discriminator = Discriminator(input_dim=hyperparameter[cfg.MODEL.FEAT_EXTRACTOR_LEVEL]['last_feat_dim'])
         self.classifier = Classifier(input_dim=hyperparameter[cfg.MODEL.FEAT_EXTRACTOR_LEVEL]['last_feat_dim'])
@@ -485,7 +417,7 @@ class MultiTask(nn.Module):
                                    input_dim=hyperparameter[cfg.MODEL.FEAT_EXTRACTOR_LEVEL]['feat_dim'])
 
     def forward(self, ref_img, dist_img):
-        ref_feat = self.feat_extractor(ref_img)
-        dist_feat = self.feat_extractor(dist_img)
+        ref_feat = self.feat_extraction(ref_img)
+        dist_feat = self.feat_extraction(dist_img)
         return self.discriminator(dist_feat[-1]).view(-1), self.classifier(dist_feat[-1]), self.evaluator(ref_feat,
                                                                                                           dist_feat)
