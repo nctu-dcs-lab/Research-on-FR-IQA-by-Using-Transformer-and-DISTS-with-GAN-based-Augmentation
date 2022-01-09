@@ -251,27 +251,27 @@ dependencies:
   - zlib=1.2.11=h516909a_1010
   - zstd=1.5.0=ha95c52a_0
   - pip:
-    - dists-pytorch==0.1
-    - filelock==3.3.2
-    - ipywidgets==7.6.5
-    - iqa-pytorch==0.1
-    - jinja2==3.0.1
-    - jsonschema==3.2.0
-    - jupyterlab-widgets==1.0.2
-    - lpips==0.1.4
-    - msgpack==1.0.2
-    - nbclient==0.5.4
-    - nbconvert==6.1.0
-    - notebook==6.4.3
-    - opencv-python==4.5.3.56
-    - packaging==21.0
-    - prometheus-client==0.11.0
-    - pytorch-fid==0.2.1
-    - ray==1.7.0
-    - redis==3.5.3
-    - tabulate==0.8.9
-    - tensorboardx==2.4
-    - timm==0.4.12
-    - torchinfo==1.5.3
-    - widgetsnbextension==3.5.1
+      - dists-pytorch==0.1
+      - filelock==3.3.2
+      - ipywidgets==7.6.5
+      - iqa-pytorch==0.1
+      - jinja2==3.0.1
+      - jsonschema==3.2.0
+      - jupyterlab-widgets==1.0.2
+      - lpips==0.1.4
+      - msgpack==1.0.2
+      - nbclient==0.5.4
+      - nbconvert==6.1.0
+      - notebook==6.4.3
+      - opencv-python==4.5.3.56
+      - packaging==21.0
+      - prometheus-client==0.11.0
+      - pytorch-fid==0.2.1
+      - ray==1.7.0
+      - redis==3.5.3
+      - tabulate==0.8.9
+      - tensorboardx==2.4
+      - timm==0.4.12
+      - torchinfo==1.5.3
+      - widgetsnbextension==3.5.1
 prefix: /home/rhome/nelson/.conda/envs/iqa
