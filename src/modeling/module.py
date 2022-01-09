@@ -120,32 +120,56 @@ class MixedFeatureExtractorInceptionResNetV2(nn.Module):
 
 
 class FeatureProjection(nn.Module):
-    def __init__(self, num_pos=841, input_dim=1920, hidden_dim=256):
-        super().__init__()
+    """
+    A base class for feature projection
+    """
 
-        self.flatten_conv2d = nn.Sequential(
-            nn.Conv2d(input_dim, hidden_dim, 1),
-            nn.Flatten(start_dim=2, end_dim=-1)
-        )
+    def __init__(self, num_pos, hidden_dim):
+        super(FeatureProjection, self).__init__()
 
         self.quality_embed = nn.Embedding(1, hidden_dim)
         self.position_embed = nn.Embedding(num_pos + 1, hidden_dim)
 
-    def forward(self, feat):
-        feat = torch.cat(feat, 1)
-        batch_size = feat.shape[0]
-        quality_embedding = self.flatten_conv2d(feat).permute(0, 2, 1)
+    def forward_feat(self, feats) -> torch.Tensor:
+        pass
+
+    def forward(self, feats):
+        batch_size = feats[0].shape[0]
+
         extra_quality_embedding = self.quality_embed.weight.unsqueeze(0).repeat(batch_size, 1, 1)
-        quality_embedding = torch.cat((extra_quality_embedding, quality_embedding), 1)
+        quality_embedding = torch.cat((extra_quality_embedding, self.forward_feat(feats)), 1)
 
         position_embedding = self.position_embed.weight.unsqueeze(0).repeat(batch_size, 1, 1)
 
         return quality_embedding + position_embedding
 
 
-class MixedFeatureProjection(nn.Module):
+class SingleFeatureProjection(FeatureProjection):
+    """
+    Feature Projection for single level feature projection
+    Include: low level, medium level and high level
+    """
+
+    def __init__(self, num_pos, input_dim, hidden_dim=256):
+        super().__init__(num_pos, hidden_dim)
+
+        self.flatten_conv2d = nn.Sequential(
+            nn.Conv2d(input_dim, hidden_dim, 1),
+            nn.Flatten(start_dim=2, end_dim=-1)
+        )
+
+    def forward_feat(self, feats):
+        feat = torch.cat(feats, 1)
+        return self.flatten_conv2d(feat).permute(0, 2, 1)
+
+
+class MixedFeatureProjection(FeatureProjection):
+    """
+    Feature Projection for mixed level feature projection
+    """
+
     def __init__(self, num_pos=21 * 21 + 10 * 10 + 4 * 4, input_dims=(1920, 6528, 12480), hidden_dim=256):
-        super().__init__()
+        super().__init__(num_pos, hidden_dim)
 
         self.low_level_flatten_conv2d = nn.Sequential(
             nn.Conv2d(input_dims[0], hidden_dim, 1),
@@ -162,24 +186,16 @@ class MixedFeatureProjection(nn.Module):
             nn.Flatten(start_dim=2, end_dim=-1)
         )
 
-        self.quality_embed = nn.Embedding(1, hidden_dim)
-        self.position_embed = nn.Embedding(num_pos + 1, hidden_dim)
+    def forward_feat(self, feats):
+        low_level_feat = torch.cat(feats[0:6], 1)
+        medium_level_feat = torch.cat(feats[6:12], 1)
+        high_level_feat = torch.cat(feats[12:18], 1)
 
-    def forward(self, feats):
-        low_level_feats = torch.cat(feats[0:6], 1)
-        medium_level_feats = torch.cat(feats[6:12], 1)
-        high_level_feats = torch.cat(feats[12:18], 1)
-        batch_size = low_level_feats.shape[0]
-        low_level_quality_embedding = self.low_level_flatten_conv2d(low_level_feats).permute(0, 2, 1)
-        medium_level_quality_embedding = self.medium_level_flatten_conv2d(medium_level_feats).permute(0, 2, 1)
-        high_level_quality_embedding = self.high_level_flatten_conv2d(high_level_feats).permute(0, 2, 1)
-        extra_quality_embedding = self.quality_embed.weight.unsqueeze(0).repeat(batch_size, 1, 1)
-        quality_embedding = torch.cat((extra_quality_embedding, low_level_quality_embedding,
-                                       medium_level_quality_embedding, high_level_quality_embedding), 1)
+        low_level_quality_embedding = self.low_level_flatten_conv2d(low_level_feat).permute(0, 2, 1)
+        medium_level_quality_embedding = self.medium_level_flatten_conv2d(medium_level_feat).permute(0, 2, 1)
+        high_level_quality_embedding = self.high_level_flatten_conv2d(high_level_feat).permute(0, 2, 1)
 
-        position_embedding = self.position_embed.weight.unsqueeze(0).repeat(batch_size, 1, 1)
-
-        return quality_embedding + position_embedding
+        return torch.cat((low_level_quality_embedding, medium_level_quality_embedding, high_level_quality_embedding), 1)
 
 
 class Transformer(nn.Module):
@@ -400,15 +416,23 @@ class Evaluator(nn.Module):
         super().__init__()
 
         if cfg.MODEL.FEAT_EXTRACTOR_LEVEL == 'low':
-            self.feat_proj = FeatureProjection(num_pos=21 * 21, hidden_dim=cfg.MODEL.TRANSFORMER_DIM)
+            self.feat_proj = SingleFeatureProjection(num_pos=21 * 21,
+                                                     input_dim=320 * 6,
+                                                     hidden_dim=cfg.MODEL.TRANSFORMER_DIM)
         elif cfg.MODEL.FEAT_EXTRACTOR_LEVEL == 'medium':
-            self.feat_proj = FeatureProjection(num_pos=10 * 10, input_dim=6528, hidden_dim=cfg.MODEL.TRANSFORMER_DIM)
+            self.feat_proj = SingleFeatureProjection(num_pos=10 * 10,
+                                                     input_dim=1088 * 6,
+                                                     hidden_dim=cfg.MODEL.TRANSFORMER_DIM)
         elif cfg.MODEL.FEAT_EXTRACTOR_LEVEL == 'high':
-            self.feat_proj = FeatureProjection(num_pos=4 * 4, input_dim=12480, hidden_dim=cfg.MODEL.TRANSFORMER_DIM)
+            self.feat_proj = SingleFeatureProjection(num_pos=4 * 4,
+                                                     input_dim=2080 * 6,
+                                                     hidden_dim=cfg.MODEL.TRANSFORMER_DIM)
         elif cfg.MODEL.FEAT_EXTRACTOR_LEVEL == 'mixed':
             self.feat_proj = MixedFeatureProjection(hidden_dim=cfg.MODEL.TRANSFORMER_DIM)
         else:
-            self.feat_proj = FeatureProjection(num_pos=21 * 21, hidden_dim=cfg.MODEL.TRANSFORMER_DIM)
+            self.feat_proj = SingleFeatureProjection(num_pos=21 * 21,
+                                                     input_dim=320 * 6,
+                                                     hidden_dim=cfg.MODEL.TRANSFORMER_DIM)
 
         self.transformer = Transformer(
             d_model=cfg.MODEL.TRANSFORMER_DIM,
