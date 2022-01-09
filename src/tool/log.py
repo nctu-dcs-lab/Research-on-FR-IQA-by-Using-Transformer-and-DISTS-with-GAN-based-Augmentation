@@ -1,25 +1,25 @@
 from torch.utils.tensorboard import SummaryWriter
 
 
-def write_iteration_log(writer: SummaryWriter, record, iteration, cfg):
+def write_iteration_log(writer: SummaryWriter, record, iteration, criterion_weight):
     writer.add_scalars(
         'Loss_netD', {
             'total': record['errD'],
-            'weighted_real_adv': cfg.TRAIN.CRITERION_WEIGHT.ERRD_REAL_ADV * record['errD_real_adv'],
-            'weighted_real_clf': cfg.TRAIN.CRITERION_WEIGHT.ERRD_REAL_CLF * record['errD_real_clf'],
-            'weighted_real_qual': cfg.TRAIN.CRITERION_WEIGHT.ERRD_REAL_QUAL * record['errD_real_qual'],
-            'weighted_fake_adv': cfg.TRAIN.CRITERION_WEIGHT.ERRD_FAKE_ADV * record['errD_fake_adv'],
-            'weighted_fake_clf': cfg.TRAIN.CRITERION_WEIGHT.ERRD_FAKE_CLF * record['errD_fake_clf']
+            'weighted_real_adv': criterion_weight['ERRD_REAL_ADV'] * record['errD_real_adv'],
+            'weighted_real_clf': criterion_weight['ERRD_REAL_CLF'] * record['errD_real_clf'],
+            'weighted_real_qual': criterion_weight['ERRD_REAL_QUAL'] * record['errD_real_qual'],
+            'weighted_fake_adv': criterion_weight['ERRD_FAKE_ADV'] * record['errD_fake_adv'],
+            'weighted_fake_clf': criterion_weight['ERRD_FAKE_CLF'] * record['errD_fake_clf']
         }, iteration // 100
     )
 
     writer.add_scalars(
         'Loss_netG', {
             'total': record['errG'],
-            'weighted_adv': cfg.TRAIN.CRITERION_WEIGHT.ERRG_ADV * record['errG_adv'],
-            'weighted_clf': cfg.TRAIN.CRITERION_WEIGHT.ERRG_CLF * record['errG_clf'],
-            'weighted_qual': cfg.TRAIN.CRITERION_WEIGHT.ERRG_QUAL * record['errG_qual'],
-            'weighted_cont': cfg.TRAIN.CRITERION_WEIGHT.ERRG_CONT * record['errG_cont']
+            'weighted_adv': criterion_weight['ERRG_ADV'] * record['errG_adv'],
+            'weighted_clf': criterion_weight['ERRG_CLF'] * record['errG_clf'],
+            'weighted_qual': criterion_weight['ERRG_QUAL'] * record['errG_qual'],
+            'weighted_cont': criterion_weight['ERRG_CONT'] * record['errG_cont']
         }, iteration // 100
     )
 
