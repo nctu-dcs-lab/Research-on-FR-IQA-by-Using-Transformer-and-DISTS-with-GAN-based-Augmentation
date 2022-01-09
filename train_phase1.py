@@ -15,7 +15,7 @@ def main(cfg):
         shutil.rmtree(cfg.TRAIN.LOG_DIR)
 
     trainer = TrainerPhase1(cfg)
-    trainer.fit()
+    trainer.train()
 
 
 if __name__ == '__main__':

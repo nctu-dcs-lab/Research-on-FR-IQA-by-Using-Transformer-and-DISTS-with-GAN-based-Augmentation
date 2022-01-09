@@ -85,7 +85,7 @@ class Trainer:
         self.iteration = self.start_epoch * math.ceil(self.datasets_size['train'] / cfg.DATASETS.BATCH_SIZE)
         self.weight_dir = cfg.TRAIN.WEIGHT_DIR
 
-    def fit(self):
+    def train(self):
         for epoch in range(self.start_epoch, self.start_epoch + self.num_epoch):
             print(f'Epoch {epoch + 1}/{self.start_epoch + self.num_epoch}')
             print('-' * 10)
@@ -98,11 +98,10 @@ class Trainer:
             self.schedulerG.step()
             self.schedulerD.step()
 
-            write_epoch_log(self.writer, results, epoch + 1)
+            self.write_epoch_log(results, epoch + 1)
 
             if self.weight_dir:
-                torch.save(self.netG.state_dict(), os.path.join(self.weight_dir, f'netG_epoch{epoch + 1}.pth'))
-                torch.save(self.netD.state_dict(), os.path.join(self.weight_dir, f'netD_epoch{epoch + 1}.pth'))
+                self.save_weight(epoch + 1)
         self.writer.close()
 
     def epoch_train(self):
@@ -110,6 +109,12 @@ class Trainer:
 
     def epoch_eval(self):
         pass
+
+    def write_epoch_log(self, results, epoch):
+        pass
+
+    def save_weight(self, epoch):
+        torch.save(self.netD.state_dict(), os.path.join(self.weight_dir, f'netD_epoch{epoch}.pth'))
 
 
 class TrainerPhase1(Trainer):
@@ -354,3 +359,189 @@ class TrainerPhase1(Trainer):
             )
 
         return result
+
+    def write_epoch_log(self, results, epoch):
+        write_epoch_log(self.writer, results, epoch)
+
+    def save_weight(self, epoch):
+        super(TrainerPhase1, self).save_weight(epoch)
+        torch.save(self.netG.state_dict(), os.path.join(self.weight_dir, f'netG_epoch{epoch}.pth'))
+
+
+class TrainerPhase2(Trainer):
+    def __init__(self, cfg):
+        super(TrainerPhase2, self).__init__(cfg)
+        self.latent_dim = cfg.MODEL.LATENT_DIM
+
+    def epoch_train(self):
+        record = {
+            'gt_scores': [],
+            'pred_scores': []
+        }
+
+        result = {
+            'real_loss': 0,
+            'fake_loss': 0
+        }
+
+        self.netG.eval()
+        self.netD.train()
+
+        with tqdm(self.dataloaders['train']) as tepoch:
+            for iteration, (ref_imgs, dist_imgs, scores, categories, origin_scores) in enumerate(tepoch):
+                ref_imgs = ref_imgs.to(self.device)
+                dist_imgs = dist_imgs.to(self.device)
+                scores = scores.to(self.device).float()
+                categories = categories.to(self.device)
+
+                # Format batch
+                bs = ref_imgs.size(0)
+
+                self.optimizerD.zero_grad()
+
+                """
+                Deal with Real Distorted Images
+                """
+                _, _, pred_scores = self.netD(ref_imgs, dist_imgs)
+
+                real_loss = self.mse_loss(pred_scores, scores)
+
+                # Record original scores and predict scores
+                record['gt_scores'].append(origin_scores)
+                record['pred_scores'].append(pred_scores.cpu().detach())
+
+                """
+                Deal with Fake Distorted Images
+                """
+                # Generate batch of latent vectors
+                noise = torch.randn(bs, self.latent_dim, device=self.device)
+
+                fake_imgs = self.netD(ref_imgs,
+                                      noise,
+                                      scores.view(bs, -1),
+                                      categories.view(bs, -1).float())
+
+                _, _, pred_scores = self.netD(ref_imgs, fake_imgs.detach())
+
+                fake_loss = self.mse_loss(pred_scores, scores)
+
+                total_loss = real_loss + fake_loss
+                total_loss.backward()
+                self.optimizerD.step()
+
+                result['real_loss'] += real_loss.item() * bs
+                result['fake_loss'] += fake_loss.item() * bs
+
+                # Show training message
+                tepoch.set_postfix({
+                    'Real Loss': real_loss.item(),
+                    'Fake Loss': fake_loss.item(),
+                    'Total Loss': total_loss.item()
+                })
+
+        result['real_loss'] /= self.datasets_size['train']
+        result['fake_loss'] /= self.datasets_size['train']
+
+        """
+        Calculate correlation coefficient
+        """
+        result['PLCC'], result['SRCC'], result['KRCC'] = \
+            calculate_correlation_coefficient(
+                torch.cat(record['gt_scores']).numpy(),
+                torch.cat(record['pred_scores']).numpy()
+            )
+
+        return result
+
+    def epoch_eval(self):
+        record = {
+            'gt_scores': [],
+            'pred_scores': []
+        }
+
+        result = {
+            'real_loss': 0,
+            'fake_loss': 0,
+            'total_loss': 0
+        }
+
+        self.netG.eval()
+        self.netD.eval()
+
+        with tqdm(self.dataloaders['train']) as tepoch:
+            for iteration, (ref_imgs, dist_imgs, scores, categories, origin_scores) in enumerate(tepoch):
+                ref_imgs = ref_imgs.to(self.device)
+                dist_imgs = dist_imgs.to(self.device)
+                scores = scores.to(self.device).float()
+                categories = categories.to(self.device)
+
+                # Format batch
+                bs, ncrops, c, h, w = ref_imgs.size()
+
+                with torch.no_grad():
+                    """
+                    Evaluate real distorted images
+                    """
+                    _, _, pred_scores = self.netD(ref_imgs.view(-1, c, h, w), dist_imgs.view(-1, c, h, w))
+                    pred_scores_avg = pred_scores.view(bs, ncrops, -1).mean(1).view(-1)
+
+                    real_loss = self.mse_loss(pred_scores_avg, scores)
+
+                    # Record original scores and predict scores
+                    record['gt_scores'].append(origin_scores)
+                    record['pred_scores'].append(pred_scores_avg.cpu().detach())
+
+                    """
+                    Evaluate fake distorted images
+                    """
+                    noise = torch.randn(bs, self.latent_dim, device=self.device)
+
+                    fake_imgs = self.netD(
+                        ref_imgs.view(-1, c, h, w),
+                        noise.repeat_interleave(ncrops, dim=0),
+                        scores.repeat_interleave(ncrops).view(bs * ncrops, -1),
+                        categories.repeat_interleave(ncrops).view(bs * ncrops, -1).float()
+                    )
+
+                    _, _, pred_scores = self.netD(ref_imgs.view(-1, c, h, w), fake_imgs.detach())
+                    pred_scores_avg = pred_scores.view(bs, ncrops, -1).mean(1).view(-1)
+
+                    fake_loss = self.mse_loss(pred_scores_avg, scores)
+
+                result['real_loss'] += real_loss.item() * bs
+                result['fake_loss'] += fake_loss.item() * bs
+
+                # Show training message
+                tepoch.set_postfix({
+                    'Real Loss': real_loss.item(),
+                    'Fake Loss': fake_loss.item()
+                })
+
+        result['real_loss'] /= self.datasets_size['val']
+        result['fake_loss'] /= self.datasets_size['val']
+
+        """
+        Calculate correlation coefficient
+        """
+        result['PLCC'], result['SRCC'], result['KRCC'] = \
+            calculate_correlation_coefficient(
+                torch.cat(record['gt_scores']).numpy(),
+                torch.cat(record['pred_scores']).numpy()
+            )
+
+        return result
+
+    def write_epoch_log(self, results, epoch):
+        self.writer.add_scalars(
+            'Loss', {
+                'train_real': results['train']['real_loss'],
+                'val_real': results['val']['real_loss'],
+                'train_fake': results['train']['fake_loss'],
+                'val_fake': results['val']['fake_loss']
+            },
+            epoch + 1
+        )
+        self.writer.add_scalars('PLCC', {x: results[x]['PLCC'] for x in ['train', 'val']}, epoch)
+        self.writer.add_scalars('SRCC', {x: results[x]['SRCC'] for x in ['train', 'val']}, epoch)
+        self.writer.add_scalars('KRCC', {x: results[x]['KRCC'] for x in ['train', 'val']}, epoch)
+        self.writer.flush()
