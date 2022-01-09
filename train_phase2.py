@@ -12,8 +12,8 @@ from torch.utils.tensorboard import SummaryWriter
 
 from src.config.config_phase2 import get_cfg_defaults
 from src.data.dataset import create_dataloaders
-from src.modeling.evaluate import evaluate_phase2
 from src.modeling.module import Generator, MultiTask
+from src.tool.evaluate import evaluate_phase2
 from src.tool.train import train_phase2
 
 

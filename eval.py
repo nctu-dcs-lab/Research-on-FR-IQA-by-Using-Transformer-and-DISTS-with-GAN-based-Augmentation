@@ -4,8 +4,8 @@ from pathlib import Path
 import torch
 
 from src.data.dataset import create_dataloaders
-from src.modeling.evaluate import evaluate
 from src.modeling.module import MultiTask
+from src.tool.evaluate import evaluate
 
 
 def main(args):
