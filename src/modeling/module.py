@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from src.modeling.feature_extraction import FeatureExtractionInceptionResNetV2
+from src.modeling.backbone import InceptionResNetV2Backbone
 from src.modeling.feature_projection import SingleFeatureProjection, MixedFeatureProjection
 from src.modeling.transformer import Transformer, MLPHead
 
@@ -156,7 +156,7 @@ class MultiTask(nn.Module):
                 'num_pos': 21 * 21 + 10 * 10 + 4 * 4}
         }
 
-        self.feat_extraction = FeatureExtractionInceptionResNetV2(level=cfg.MODEL.FEAT_EXTRACTOR_LEVEL)
+        self.feat_extraction = InceptionResNetV2Backbone(level=cfg.MODEL.FEAT_EXTRACTOR_LEVEL)
 
         self.discriminator = Discriminator(input_dim=hyperparameter[cfg.MODEL.FEAT_EXTRACTOR_LEVEL]['last_feat_dim'])
         self.classifier = Classifier(input_dim=hyperparameter[cfg.MODEL.FEAT_EXTRACTOR_LEVEL]['last_feat_dim'])
