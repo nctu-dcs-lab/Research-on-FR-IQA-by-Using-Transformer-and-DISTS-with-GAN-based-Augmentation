@@ -416,7 +416,7 @@ class TrainerPhase2(Trainer):
                 # Generate batch of latent vectors
                 noise = torch.randn(bs, self.latent_dim, device=self.device)
 
-                fake_imgs = self.netD(ref_imgs,
+                fake_imgs = self.netG(ref_imgs,
                                       noise,
                                       scores.view(bs, -1),
                                       categories.view(bs, -1).float())
@@ -468,7 +468,7 @@ class TrainerPhase2(Trainer):
         self.netG.eval()
         self.netD.eval()
 
-        with tqdm(self.dataloaders['train']) as tepoch:
+        with tqdm(self.dataloaders['val']) as tepoch:
             for iteration, (ref_imgs, dist_imgs, scores, categories, origin_scores) in enumerate(tepoch):
                 ref_imgs = ref_imgs.to(self.device)
                 dist_imgs = dist_imgs.to(self.device)
