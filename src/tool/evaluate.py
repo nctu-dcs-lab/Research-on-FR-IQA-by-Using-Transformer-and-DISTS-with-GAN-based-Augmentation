@@ -17,14 +17,14 @@ def calculate_correlation_coefficient(gt_qual, pred_qual):
            np.abs(kendalltau(gt_qual, pred_qual)[0])
 
 
-def evaluate(dataloader, model, device=torch.device('cpu')):
+def evaluate(dataloader, netD, device=torch.device('cpu')):
     record = {
         'gt_scores': [],
         'pred_scores': [],
     }
     result = {}
 
-    model['netD'].eval()
+    netD.eval()
     with tqdm(dataloader) as tepoch:
         for iteration, (ref_imgs, dist_imgs, _, _, origin_scores) in enumerate(tepoch):
             ref_imgs = ref_imgs.to(device)
@@ -37,7 +37,7 @@ def evaluate(dataloader, model, device=torch.device('cpu')):
                 """
                 Evaluate distorted images
                 """
-                _, _, pred_scores = model['netD'](ref_imgs.view(-1, c, h, w), dist_imgs.view(-1, c, h, w))
+                _, _, pred_scores = netD(ref_imgs.view(-1, c, h, w), dist_imgs.view(-1, c, h, w))
                 pred_scores_avg = pred_scores.view(bs, ncrops, -1).mean(1).view(-1)
 
                 # Record original scores and predict scores
