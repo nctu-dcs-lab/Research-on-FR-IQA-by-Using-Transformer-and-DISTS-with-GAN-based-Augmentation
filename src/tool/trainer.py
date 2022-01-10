@@ -44,7 +44,6 @@ class Trainer:
 
         self.dataloaders, self.datasets_size = create_dataloaders(
             Path(cfg.DATASETS.ROOT_DIR),
-            phase=cfg.TRAIN.PHASE,
             batch_size=cfg.DATASETS.BATCH_SIZE,
             num_workers=cfg.DATASETS.NUM_WORKERS
         )
@@ -328,17 +327,19 @@ class TrainerPhase1(Trainer):
             categories = categories.to(self.device)
 
             # Format batch
-            bs = ref_imgs.size(0)
+            bs, ncrops, c, h, w = ref_imgs.size()
 
             with torch.no_grad():
-                _, pred_categories, pred_scores = self.netD(ref_imgs, dist_imgs)
+                _, pred_categories, pred_scores = self.netD(ref_imgs.view(-1, c, h, w), dist_imgs.view(-1, c, h, w))
+                pred_scores_avg = pred_scores.view(bs, ncrops, -1).mean(1).view(-1)
+                pred_categories_avg = pred_categories.view(bs, ncrops, -1).mean(1)
 
-                record['errD_real_clf'] = self.ce_loss(pred_categories, categories).item()
-                record['errD_real_qual'] = self.mse_loss(pred_scores, scores).item()
+                record['errD_real_clf'] = self.ce_loss(pred_categories_avg, categories).item()
+                record['errD_real_qual'] = self.mse_loss(pred_scores_avg, scores).item()
 
             # Record original scores and predict scores
             record['gt_scores'].append(origin_scores)
-            record['pred_scores'].append(pred_scores.cpu().detach())
+            record['pred_scores'].append(pred_scores_avg.cpu().detach())
 
             """
             Record epoch loss
