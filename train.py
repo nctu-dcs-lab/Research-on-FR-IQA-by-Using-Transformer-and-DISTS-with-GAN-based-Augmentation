@@ -2,8 +2,8 @@ import argparse
 import os
 import shutil
 
-from src.config.config_phase2 import get_cfg_defaults
-from src.tool.trainer import TrainerPhase2
+from src.config.config import get_cfg_defaults
+from src.tool.trainer import TrainerPhase1, TrainerPhase2
 
 
 def main(cfg):
@@ -13,7 +13,10 @@ def main(cfg):
     if cfg.TRAIN.LOG_DIR and os.path.isdir(cfg.TRAIN.LOG_DIR):
         shutil.rmtree(cfg.TRAIN.LOG_DIR)
 
-    trainer = TrainerPhase2(cfg)
+    if cfg.TRAIN.PHASE == 1:
+        trainer = TrainerPhase1(cfg)
+    else:
+        trainer = TrainerPhase2(cfg)
     trainer.train()
 
 
@@ -28,7 +31,8 @@ if __name__ == '__main__':
         cfg.merge_from_file(args.config)
     except:
         print('Using default configuration file')
-        print('Incorrect to train phase2 without loading phase1 weight')
+        if cfg.TRAIN.PHASE == 2:
+            print('Incorrect to train phase2 without loading phase1 weight')
 
     cfg.freeze()
 
