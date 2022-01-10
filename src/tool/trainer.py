@@ -546,3 +546,127 @@ class TrainerPhase2(Trainer):
         self.writer.add_scalars('SRCC', {x: results[x]['SRCC'] for x in ['train', 'val']}, epoch)
         self.writer.add_scalars('KRCC', {x: results[x]['KRCC'] for x in ['train', 'val']}, epoch)
         self.writer.flush()
+
+
+class TrainerPhase3(Trainer):
+    def __init__(self, cfg):
+        super(TrainerPhase3, self).__init__(cfg)
+
+    def epoch_train(self):
+        record = {
+            'gt_scores': [],
+            'pred_scores': []
+        }
+
+        result = {
+            'loss': 0
+        }
+
+        self.netD.train()
+
+        with tqdm(self.dataloaders['train']) as tepoch:
+            for ref_imgs, dist_imgs, scores, categories, origin_scores in tepoch:
+                ref_imgs = ref_imgs.to(self.device)
+                dist_imgs = dist_imgs.to(self.device)
+                scores = scores.to(self.device).float()
+
+                # Format batch
+                bs = ref_imgs.size(0)
+
+                self.optimizerD.zero_grad()
+
+                """
+                Deal with Real Distorted Images
+                """
+                _, _, pred_scores = self.netD(ref_imgs, dist_imgs)
+
+                loss = self.mse_loss(pred_scores, scores)
+
+                # Record original scores and predict scores
+                record['gt_scores'].append(origin_scores)
+                record['pred_scores'].append(pred_scores.cpu().detach())
+
+                loss.backward()
+                self.optimizerD.step()
+
+                result['loss'] += loss.item() * bs
+
+                # Show training message
+                tepoch.set_postfix({
+                    'Loss': loss.item()
+                })
+
+        result['loss'] /= self.datasets_size['train']
+        result['loss'] /= self.datasets_size['train']
+
+        """
+        Calculate correlation coefficient
+        """
+        result['PLCC'], result['SRCC'], result['KRCC'] = \
+            calculate_correlation_coefficient(
+                torch.cat(record['gt_scores']).numpy(),
+                torch.cat(record['pred_scores']).numpy()
+            )
+
+        return result
+
+    def epoch_eval(self):
+        record = {
+            'gt_scores': [],
+            'pred_scores': []
+        }
+
+        result = {
+            'loss': 0
+        }
+
+        self.netD.eval()
+
+        with tqdm(self.dataloaders['val']) as tepoch:
+            for ref_imgs, dist_imgs, scores, categories, origin_scores in tepoch:
+                ref_imgs = ref_imgs.to(self.device)
+                dist_imgs = dist_imgs.to(self.device)
+                scores = scores.to(self.device).float()
+
+                # Format batch
+                bs, ncrops, c, h, w = ref_imgs.size()
+
+                with torch.no_grad():
+                    """
+                    Evaluate real distorted images
+                    """
+                    _, _, pred_scores = self.netD(ref_imgs.view(-1, c, h, w), dist_imgs.view(-1, c, h, w))
+                    pred_scores_avg = pred_scores.view(bs, ncrops, -1).mean(1).view(-1)
+
+                    loss = self.mse_loss(pred_scores_avg, scores)
+
+                    # Record original scores and predict scores
+                    record['gt_scores'].append(origin_scores)
+                    record['pred_scores'].append(pred_scores_avg.cpu().detach())
+
+                result['loss'] += loss.item() * bs
+
+                # Show training message
+                tepoch.set_postfix({
+                    'Loss': loss.item()
+                })
+
+        result['loss'] /= self.datasets_size['val']
+
+        """
+        Calculate correlation coefficient
+        """
+        result['PLCC'], result['SRCC'], result['KRCC'] = \
+            calculate_correlation_coefficient(
+                torch.cat(record['gt_scores']).numpy(),
+                torch.cat(record['pred_scores']).numpy()
+            )
+
+        return result
+
+    def write_epoch_log(self, results, epoch):
+        self.writer.add_scalars('Loss', {phase: results[phase]['loss'] for phase in ['train', 'val']}, epoch + 1)
+        self.writer.add_scalars('PLCC', {x: results[x]['PLCC'] for x in ['train', 'val']}, epoch + 1)
+        self.writer.add_scalars('SRCC', {x: results[x]['PLCC'] for x in ['train', 'val']}, epoch + 1)
+        self.writer.add_scalars('KRCC', {x: results[x]['PLCC'] for x in ['train', 'val']}, epoch + 1)
+        self.writer.flush()

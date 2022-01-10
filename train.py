@@ -3,7 +3,7 @@ import os
 import shutil
 
 from src.config.config import get_cfg_defaults
-from src.tool.trainer import TrainerPhase1, TrainerPhase2
+from src.tool.trainer import TrainerPhase1, TrainerPhase2, TrainerPhase3
 
 
 def main(cfg):
@@ -15,8 +15,10 @@ def main(cfg):
 
     if cfg.TRAIN.PHASE == 1:
         trainer = TrainerPhase1(cfg)
-    else:
+    elif cfg.TRAIN.PHASE == 2:
         trainer = TrainerPhase2(cfg)
+    else:
+        trainer = TrainerPhase3(cfg)
     trainer.train()
 
 
