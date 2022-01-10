@@ -496,7 +496,7 @@ class TrainerPhase2(Trainer):
                     """
                     noise = torch.randn(bs, self.latent_dim, device=self.device)
 
-                    fake_imgs = self.netD(
+                    fake_imgs = self.netG(
                         ref_imgs.view(-1, c, h, w),
                         noise.repeat_interleave(ncrops, dim=0),
                         scores.repeat_interleave(ncrops).view(bs * ncrops, -1),
