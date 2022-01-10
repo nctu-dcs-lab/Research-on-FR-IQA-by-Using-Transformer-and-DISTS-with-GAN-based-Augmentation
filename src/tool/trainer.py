@@ -469,7 +469,7 @@ class TrainerPhase2(Trainer):
         self.netD.eval()
 
         with tqdm(self.dataloaders['val']) as tepoch:
-            for iteration, (ref_imgs, dist_imgs, scores, categories, origin_scores) in enumerate(tepoch):
+            for ref_imgs, dist_imgs, scores, categories, origin_scores in tepoch:
                 ref_imgs = ref_imgs.to(self.device)
                 dist_imgs = dist_imgs.to(self.device)
                 scores = scores.to(self.device).float()
