@@ -1,0 +1,14 @@
+TRAIN:
+  NUM_EPOCHS: 200
+  LEARNING_RATE:
+    NET_D: 1e-05
+  LOG_DIR: experiments/phase2-experiment10/logs
+  WEIGHT_DIR: experiments/phase2-experiment10/models
+  RESUME:
+    NET_G: /home/rhome/nelson/ACGAN-IQT/experiments/phase1-experiment10/models/netG_epoch200.pth
+  PHASE: 2
+MODEL:
+  FEAT_EXTRACTOR_LEVEL: medium
+DATASETS:
+  BATCH_SIZE: 16
+  NUM_WORKERS: 6
