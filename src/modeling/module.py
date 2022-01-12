@@ -1,9 +1,8 @@
 import torch
 import torch.nn as nn
 
-from src.modeling.backbone import InceptionResNetV2Backbone
-from src.modeling.feature_projection import SingleFeatureProjection, MixedFeatureProjection
-from src.modeling.transformer import Transformer, MLPHead
+from src.modeling.backbone import InceptionResNetV2Backbone, VGG16Backbone
+from src.modeling.evaluator import IQT, DISTS
 
 
 class Generator(nn.Module):
@@ -94,37 +93,6 @@ class Discriminator(nn.Module):
         return self.classifer(feat)
 
 
-class Evaluator(nn.Module):
-    def __init__(self, cfg, num_pos, input_dim):
-        super().__init__()
-
-        if cfg.MODEL.FEAT_EXTRACTOR_LEVEL == 'mixed':
-            self.feat_proj = MixedFeatureProjection(num_pos=num_pos,
-                                                    input_dim=input_dim,
-                                                    hidden_dim=cfg.MODEL.TRANSFORMER_DIM)
-        else:
-            self.feat_proj = SingleFeatureProjection(num_pos=num_pos,
-                                                     input_dim=input_dim,
-                                                     hidden_dim=cfg.MODEL.TRANSFORMER_DIM)
-
-        self.transformer = Transformer(
-            d_model=cfg.MODEL.TRANSFORMER_DIM,
-            nhead=cfg.MODEL.MHA_NUM_HEADS,
-            num_encoder_layers=cfg.MODEL.TRANSFORMER_LAYERS,
-            num_decoder_layers=cfg.MODEL.TRANSFORMER_LAYERS,
-            dim_feedforward=cfg.MODEL.FEAT_DIM
-        )
-        self.mlp_head = MLPHead(in_dim=cfg.MODEL.TRANSFORMER_DIM, hidden_dim=cfg.MODEL.HEAD_DIM)
-
-    def forward(self, ref_feat, dist_feat):
-        diff_feat = tuple(map(lambda i, j: i - j, ref_feat, dist_feat))
-
-        ref_proj_feat = self.feat_proj(ref_feat)
-        diff_proj_feat = self.feat_proj(diff_feat)
-
-        return self.mlp_head(self.transformer(diff_proj_feat, ref_proj_feat)[0])
-
-
 class Classifier(nn.Module):
     def __init__(self, input_dim, num_classes=116, hidden_dim=512):
         super().__init__()
@@ -144,28 +112,22 @@ class Classifier(nn.Module):
 class MultiTask(nn.Module):
     def __init__(self, cfg):
         super().__init__()
-        assert cfg.MODEL.FEAT_EXTRACTOR_LEVEL in ['low', 'medium', 'high', 'mixed']
 
-        hyperparameter = {
-            'low': {'last_feat_dim': 320, 'feat_dim': 320 * 6, 'num_pos': 21 * 21},
-            'medium': {'last_feat_dim': 1088, 'feat_dim': 1088 * 6, 'num_pos': 10 * 10},
-            'high': {'last_feat_dim': 2080, 'feat_dim': 2080 * 6, 'num_pos': 4 * 4},
-            'mixed': {
-                'last_feat_dim': 2080,
-                'feat_dim': (320 * 6, 1088 * 6, 2080 * 6),
-                'num_pos': 21 * 21 + 10 * 10 + 4 * 4}
-        }
+        if cfg.MODEL.BACKBONE.NAME == 'VGG16':
+            self.backbone = VGG16Backbone()
+        else:
+            self.backbone = InceptionResNetV2Backbone(level=cfg.MODEL.BACKBONE.FEAT_LEVEL)
 
-        self.feat_extraction = InceptionResNetV2Backbone(level=cfg.MODEL.FEAT_EXTRACTOR_LEVEL)
+        self.discriminator = Discriminator(input_dim=cfg.MODEL.BACKBONE.CHANNELS[-1])
+        self.classifier = Classifier(input_dim=cfg.MODEL.BACKBONE.CHANNELS[-1])
 
-        self.discriminator = Discriminator(input_dim=hyperparameter[cfg.MODEL.FEAT_EXTRACTOR_LEVEL]['last_feat_dim'])
-        self.classifier = Classifier(input_dim=hyperparameter[cfg.MODEL.FEAT_EXTRACTOR_LEVEL]['last_feat_dim'])
-        self.evaluator = Evaluator(cfg,
-                                   num_pos=hyperparameter[cfg.MODEL.FEAT_EXTRACTOR_LEVEL]['num_pos'],
-                                   input_dim=hyperparameter[cfg.MODEL.FEAT_EXTRACTOR_LEVEL]['feat_dim'])
+        if cfg.MODEL.EVALUATOR == 'IQT':
+            self.evaluator = IQT(cfg)
+        else:
+            self.evaluator = DISTS(cfg)
 
     def forward(self, ref_img, dist_img):
-        ref_feat = self.feat_extraction(ref_img)
-        dist_feat = self.feat_extraction(dist_img)
+        ref_feat = self.backbone(ref_img)
+        dist_feat = self.backbone(dist_img)
         return self.discriminator(dist_feat[-1]).view(-1), self.classifier(dist_feat[-1]), self.evaluator(ref_feat,
                                                                                                           dist_feat)

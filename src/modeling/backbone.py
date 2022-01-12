@@ -93,6 +93,10 @@ class VGG16Backbone(Backbone):
             slice5.add_module(str(x), vgg_pretrained_features[x])
         self.slices.append(slice5)
 
+    def forward(self, x):
+        feats = super(VGG16Backbone, self).forward(x)
+        return tuple([x]) + feats
+
 
 class L2pooling(nn.Module):
     def __init__(self, filter_size=5, stride=2, channels=None):
