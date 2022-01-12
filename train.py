@@ -25,7 +25,7 @@ def main(cfg):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--config', type=str, help='Configuration YAML file for train phase1')
+    parser.add_argument('--config', type=str, help='Configuration YAML file for training')
     args = parser.parse_args()
 
     cfg = get_cfg_defaults()
