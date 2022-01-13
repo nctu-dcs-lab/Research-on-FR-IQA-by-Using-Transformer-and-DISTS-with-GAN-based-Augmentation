@@ -540,7 +540,7 @@ class TrainerPhase2(Trainer):
                 'train_fake': results['train']['fake_loss'],
                 'val_fake': results['val']['fake_loss']
             },
-            epoch + 1
+            epoch
         )
         self.writer.add_scalars('PLCC', {x: results[x]['PLCC'] for x in ['train', 'val']}, epoch)
         self.writer.add_scalars('SRCC', {x: results[x]['SRCC'] for x in ['train', 'val']}, epoch)
@@ -665,8 +665,8 @@ class TrainerPhase3(Trainer):
         return result
 
     def write_epoch_log(self, results, epoch):
-        self.writer.add_scalars('Loss', {phase: results[phase]['loss'] for phase in ['train', 'val']}, epoch + 1)
-        self.writer.add_scalars('PLCC', {x: results[x]['PLCC'] for x in ['train', 'val']}, epoch + 1)
-        self.writer.add_scalars('SRCC', {x: results[x]['PLCC'] for x in ['train', 'val']}, epoch + 1)
-        self.writer.add_scalars('KRCC', {x: results[x]['PLCC'] for x in ['train', 'val']}, epoch + 1)
+        self.writer.add_scalars('Loss', {phase: results[phase]['loss'] for phase in ['train', 'val']}, epoch)
+        self.writer.add_scalars('PLCC', {x: results[x]['PLCC'] for x in ['train', 'val']}, epoch)
+        self.writer.add_scalars('SRCC', {x: results[x]['PLCC'] for x in ['train', 'val']}, epoch)
+        self.writer.add_scalars('KRCC', {x: results[x]['PLCC'] for x in ['train', 'val']}, epoch)
         self.writer.flush()
