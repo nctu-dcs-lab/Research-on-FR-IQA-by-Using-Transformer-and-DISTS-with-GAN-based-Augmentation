@@ -1,2 +1,3 @@
 MODEL:
-  FEAT_EXTRACTOR_LEVEL: high
+  BACKBONE:
+    FEAT_LEVEL: high
