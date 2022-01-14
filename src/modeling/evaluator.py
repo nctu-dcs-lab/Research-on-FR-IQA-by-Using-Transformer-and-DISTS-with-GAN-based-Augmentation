@@ -3,7 +3,7 @@ import abc
 import torch
 from torch import nn as nn
 
-from src.modeling.feature_projection import IQTFeatureProjection
+from src.modeling.feature_projection import IQTFeatureProjection, SeparateFeatureProjection
 from src.modeling.transformer import Transformer, MLPHead
 
 
@@ -55,15 +55,13 @@ class DISTS(Evaluator):
         return 1 - torch.squeeze(dist1 + dist2)
 
 
-class IQT(Evaluator):
+class TransformerEvaluator(Evaluator):
     def __init__(self, cfg):
-        super(IQT, self).__init__()
-        assert cfg.MODEL.BACKBONE.NAME == 'InceptionResNetV2'
-        assert cfg.MODEL.BACKBONE.FEAT_LEVEL in ['low', 'medium', 'high']
+        super(TransformerEvaluator, self).__init__()
 
-        self.feat_proj = IQTFeatureProjection(
-            num_pos=cfg.MODEL.BACKBONE.OUTPUT_SIZE[0],
-            input_dim=sum(cfg.MODEL.BACKBONE.CHANNELS),
+        self.feat_proj = SeparateFeatureProjection(
+            num_pos=sum(cfg.MODEL.BACKBONE.OUTPUT_SIZE),
+            input_dims=cfg.MODEL.BACKBONE.CHANNELS,
             hidden_dim=cfg.MODEL.IQT.TRANSFORMER_DIM
         )
 
@@ -83,3 +81,16 @@ class IQT(Evaluator):
         diff_proj_feat = self.feat_proj(diff_feat)
 
         return self.mlp_head(self.transformer(diff_proj_feat, ref_proj_feat)[0])
+
+
+class IQT(TransformerEvaluator):
+    def __init__(self, cfg):
+        super(IQT, self).__init__(cfg)
+        assert cfg.MODEL.BACKBONE.NAME == 'InceptionResNetV2'
+        assert cfg.MODEL.BACKBONE.FEAT_LEVEL in ['low', 'medium', 'high']
+
+        self.feat_proj = IQTFeatureProjection(
+            num_pos=cfg.MODEL.BACKBONE.OUTPUT_SIZE[0],
+            input_dim=sum(cfg.MODEL.BACKBONE.CHANNELS),
+            hidden_dim=cfg.MODEL.IQT.TRANSFORMER_DIM
+        )
