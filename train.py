@@ -42,20 +42,21 @@ if __name__ == '__main__':
 
     if cfg.MODEL.BACKBONE.NAME == 'VGG16':
         cfg.MODEL.BACKBONE.CHANNELS = (3, 64, 128, 256, 512, 512)
-        cfg.MODEL.IQT.NUM_POS = 192 * 192 + 192 * 192 + 96 * 96 + 48 * 48 + 24 * 24 + 12 * 12
+        cfg.MODEL.BACKBONE.OUTPUT_SIZE = (192 * 192, 192 * 192, 96 * 96, 48 * 48, 24 * 24, 12 * 12)
     elif cfg.MODEL.BACKBONE.FEAT_LEVEL == 'low':
         cfg.MODEL.BACKBONE.CHANNELS = tuple(320 for _ in range(6))
-        cfg.MODEL.IQT.NUM_POS = 21 * 21
+        cfg.MODEL.BACKBONE.OUTPUT_SIZE = tuple(21 * 21 for _ in range(6))
     elif cfg.MODEL.BACKBONE.FEAT_LEVEL == 'medium':
         cfg.MODEL.BACKBONE.CHANNELS = tuple(1088 for _ in range(6))
-        cfg.MODEL.IQT.NUM_POS = 10 * 10
+        cfg.MODEL.BACKBONE.OUTPUT_SIZE = tuple(10 * 10 for _ in range(6))
     elif cfg.MODEL.BACKBONE.FEAT_LEVEL == 'high':
         cfg.MODEL.BACKBONE.CHANNELS = tuple(2080 for _ in range(6))
-        cfg.MODEL.IQT.NUM_POS = 4 * 4
+        cfg.MODEL.BACKBONE.OUTPUT_SIZE = tuple(4 * 4 for _ in range(6))
     else:  # mixed
         cfg.MODEL.BACKBONE.CHANNELS = tuple(320 for _ in range(6)) + tuple(1088 for _ in range(6)) + tuple(
             2080 for _ in range(6))
-        cfg.MODEL.IQT.NUM_POS = 21 * 21 + 10 * 10 + 4 * 4
+        cfg.MODEL.BACKBONE.OUTPUT_SIZE = tuple(21 * 21 for _ in range(6)) + tuple(10 * 10 for _ in range(6)) + tuple(
+            4 * 4 for _ in range(6))
 
     cfg.freeze()
 

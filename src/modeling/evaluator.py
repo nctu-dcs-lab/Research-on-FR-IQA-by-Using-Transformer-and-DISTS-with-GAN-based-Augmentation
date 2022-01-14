@@ -3,7 +3,7 @@ import abc
 import torch
 from torch import nn as nn
 
-from src.modeling.feature_projection import FeatureProjection
+from src.modeling.feature_projection import IQTFeatureProjection
 from src.modeling.transformer import Transformer, MLPHead
 
 
@@ -58,10 +58,12 @@ class DISTS(Evaluator):
 class IQT(Evaluator):
     def __init__(self, cfg):
         super(IQT, self).__init__()
+        assert cfg.MODEL.BACKBONE.NAME == 'InceptionResNetV2'
+        assert cfg.MODEL.BACKBONE.FEAT_LEVEL in ['low', 'medium', 'high']
 
-        self.feat_proj = FeatureProjection(
-            num_pos=cfg.MODEL.IQT.NUM_POS,
-            input_dims=cfg.MODEL.BACKBONE.CHANNELS,
+        self.feat_proj = IQTFeatureProjection(
+            num_pos=cfg.MODEL.BACKBONE.OUTPUT_SIZE[0],
+            input_dim=sum(cfg.MODEL.BACKBONE.CHANNELS),
             hidden_dim=cfg.MODEL.IQT.TRANSFORMER_DIM
         )
 
