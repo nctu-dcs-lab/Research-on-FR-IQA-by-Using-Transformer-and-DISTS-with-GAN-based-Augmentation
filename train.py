@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
     assert cfg.MODEL.BACKBONE.NAME in ['VGG16', 'InceptionResNetV2']
     assert cfg.MODEL.BACKBONE.FEAT_LEVEL in ['low', 'medium', 'high', 'mixed']
-    assert cfg.MODEL.EVALUATOR in ['IQT', 'DISTS']
+    assert cfg.MODEL.EVALUATOR in ['IQT', 'DISTS', 'Transformer']
 
     if cfg.MODEL.BACKBONE.NAME == 'VGG16':
         cfg.MODEL.BACKBONE.CHANNELS = (3, 64, 128, 256, 512, 512)

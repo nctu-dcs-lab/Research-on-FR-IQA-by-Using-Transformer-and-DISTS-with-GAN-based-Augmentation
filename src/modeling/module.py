@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 from src.modeling.backbone import InceptionResNetV2Backbone, VGG16Backbone
-from src.modeling.evaluator import IQT, DISTS
+from src.modeling.evaluator import IQT, DISTS, TransformerEvaluator
 
 
 class Generator(nn.Module):
@@ -123,8 +123,10 @@ class MultiTask(nn.Module):
 
         if cfg.MODEL.EVALUATOR == 'IQT':
             self.evaluator = IQT(cfg)
-        else:
+        elif cfg.MODEL.EVALUATOR == 'DISTS':
             self.evaluator = DISTS(cfg)
+        else:
+            self.evaluator = TransformerEvaluator(cfg)
 
     def forward(self, ref_img, dist_img):
         ref_feat = self.backbone(ref_img)

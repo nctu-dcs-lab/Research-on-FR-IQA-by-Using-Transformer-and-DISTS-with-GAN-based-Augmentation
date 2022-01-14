@@ -62,17 +62,17 @@ class TransformerEvaluator(Evaluator):
         self.feat_proj = SeparateFeatureProjection(
             num_pos=sum(cfg.MODEL.BACKBONE.OUTPUT_SIZE),
             input_dims=cfg.MODEL.BACKBONE.CHANNELS,
-            hidden_dim=cfg.MODEL.IQT.TRANSFORMER_DIM
+            hidden_dim=cfg.MODEL.TRANSFORMER.TRANSFORMER_DIM
         )
 
         self.transformer = Transformer(
-            d_model=cfg.MODEL.IQT.TRANSFORMER_DIM,
-            nhead=cfg.MODEL.IQT.MHA_NUM_HEADS,
-            num_encoder_layers=cfg.MODEL.IQT.TRANSFORMER_LAYERS,
-            num_decoder_layers=cfg.MODEL.IQT.TRANSFORMER_LAYERS,
-            dim_feedforward=cfg.MODEL.IQT.FEAT_DIM
+            d_model=cfg.MODEL.TRANSFORMER.TRANSFORMER_DIM,
+            nhead=cfg.MODEL.TRANSFORMER.MHA_NUM_HEADS,
+            num_encoder_layers=cfg.MODEL.TRANSFORMER.TRANSFORMER_LAYERS,
+            num_decoder_layers=cfg.MODEL.TRANSFORMER.TRANSFORMER_LAYERS,
+            dim_feedforward=cfg.MODEL.TRANSFORMER.FEAT_DIM
         )
-        self.mlp_head = MLPHead(in_dim=cfg.MODEL.IQT.TRANSFORMER_DIM, hidden_dim=cfg.MODEL.IQT.HEAD_DIM)
+        self.mlp_head = MLPHead(in_dim=cfg.MODEL.TRANSFORMER.TRANSFORMER_DIM, hidden_dim=cfg.MODEL.TRANSFORMER.HEAD_DIM)
 
     def forward(self, ref_feat, dist_feat):
         diff_feat = tuple(map(lambda i, j: i - j, ref_feat, dist_feat))
@@ -92,5 +92,5 @@ class IQT(TransformerEvaluator):
         self.feat_proj = IQTFeatureProjection(
             num_pos=cfg.MODEL.BACKBONE.OUTPUT_SIZE[0],
             input_dim=sum(cfg.MODEL.BACKBONE.CHANNELS),
-            hidden_dim=cfg.MODEL.IQT.TRANSFORMER_DIM
+            hidden_dim=cfg.MODEL.TRANSFORMER.TRANSFORMER_DIM
         )
