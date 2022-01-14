@@ -43,3 +43,22 @@ class IQTFeatureProjection(FeatureProjection):
     def forward_feat(self, feats):
         feat = torch.cat(feats, 1)
         return self.flatten_conv2d(feat).permute(0, 2, 1)
+
+
+class SeparateFeatureProjection(FeatureProjection):
+    """
+    Feature Projection for general case
+    """
+
+    def __init__(self, num_pos, input_dims, hidden_dim=256):
+        super(SeparateFeatureProjection, self).__init__(num_pos, hidden_dim)
+
+        self.parts = nn.ModuleList([nn.Sequential(nn.Conv2d(input_dim, hidden_dim, 1),
+                                                  nn.Flatten(start_dim=2, end_dim=-1)) for input_dim in input_dims])
+
+    def forward_feat(self, feats) -> torch.Tensor:
+        projections = []
+        for feat, part in zip(feats, self.parts):
+            projections.append(part(feat))
+
+        return torch.cat(projections, 2).permute(0, 2, 1)
