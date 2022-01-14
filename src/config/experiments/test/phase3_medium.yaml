@@ -1,0 +1,5 @@
+TRAIN:
+  PHASE: 3
+MODEL:
+  BACKBONE:
+    FEAT_LEVEL: medium
