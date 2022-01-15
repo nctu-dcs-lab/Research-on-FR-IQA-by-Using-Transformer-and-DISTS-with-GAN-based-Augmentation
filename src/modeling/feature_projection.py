@@ -45,6 +45,35 @@ class IQTFeatureProjection(FeatureProjection):
         return self.flatten_conv2d(feat).permute(0, 2, 1)
 
 
+class MixedFeatureProjection(FeatureProjection):
+    """
+    Feature Projection for mixed level InceptionResNet V2 backbone
+    """
+
+    def __init__(self, num_pos, input_dims, hidden_dim=256):
+        super(MixedFeatureProjection, self).__init__(num_pos, hidden_dim)
+
+        self.low_level_flatten_conv2d = nn.Sequential(
+            nn.Conv2d(input_dims[0], hidden_dim, 1),
+            nn.Flatten(start_dim=2, end_dim=-1)
+        )
+        self.medium_level_flatten_conv2d = nn.Sequential(
+            nn.Conv2d(input_dims[1], hidden_dim, 1),
+            nn.Flatten(start_dim=2, end_dim=-1)
+        )
+        self.high_level_flatten_conv2d = nn.Sequential(
+            nn.Conv2d(input_dims[2], hidden_dim, 1),
+            nn.Flatten(start_dim=2, end_dim=-1)
+        )
+
+    def forward_feat(self, feats) -> torch.Tensor:
+        low_level_embed = self.low_level_flatten_conv2d(torch.cat(feats[:6], 1))
+        medium_level_embed = self.medium_level_flatten_conv2d(torch.cat(feats[6:12], 1))
+        high_level_embed = self.high_level_flatten_conv2d(torch.cat(feats[12:], 1))
+
+        return torch.cat((low_level_embed, medium_level_embed, high_level_embed), 2).permute(0, 2, 1)
+
+
 class SeparateFeatureProjection(FeatureProjection):
     """
     Feature Projection for general case
