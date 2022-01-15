@@ -597,7 +597,6 @@ class TrainerPhase3(Trainer):
                 })
 
         result['loss'] /= self.datasets_size['train']
-        result['loss'] /= self.datasets_size['train']
 
         """
         Calculate correlation coefficient
