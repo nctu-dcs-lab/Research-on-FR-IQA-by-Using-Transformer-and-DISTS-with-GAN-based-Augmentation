@@ -1,0 +1,9 @@
+TRAIN:
+  PHASE: 3
+  LEARNING_RATE:
+    NET_D: 1e-05
+  LOG_DIR: experiments/transformer-experiment1/logs
+  WEIGHT_DIR: experiments/transformer-experiment1/model
+  NUM_EPOCHS: 200
+MODEL:
+  EVALUATOR: Transformer
