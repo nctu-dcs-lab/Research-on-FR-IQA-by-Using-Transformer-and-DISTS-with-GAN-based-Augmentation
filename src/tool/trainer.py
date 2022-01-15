@@ -666,6 +666,6 @@ class TrainerPhase3(Trainer):
     def write_epoch_log(self, results, epoch):
         self.writer.add_scalars('Loss', {phase: results[phase]['loss'] for phase in ['train', 'val']}, epoch)
         self.writer.add_scalars('PLCC', {x: results[x]['PLCC'] for x in ['train', 'val']}, epoch)
-        self.writer.add_scalars('SRCC', {x: results[x]['PLCC'] for x in ['train', 'val']}, epoch)
-        self.writer.add_scalars('KRCC', {x: results[x]['PLCC'] for x in ['train', 'val']}, epoch)
+        self.writer.add_scalars('SRCC', {x: results[x]['SRCC'] for x in ['train', 'val']}, epoch)
+        self.writer.add_scalars('KRCC', {x: results[x]['KRCC'] for x in ['train', 'val']}, epoch)
         self.writer.flush()
