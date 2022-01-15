@@ -95,26 +95,30 @@ class Discriminator(nn.Module):
 
 
 class Evaluator(nn.Module):
-    def __init__(self, cfg, num_pos, input_dim):
+    def __init__(self, cfg):
         super().__init__()
 
-        if cfg.MODEL.FEAT_EXTRACTOR_LEVEL == 'mixed':
-            self.feat_proj = MixedFeatureProjection(num_pos=num_pos,
-                                                    input_dim=input_dim,
-                                                    hidden_dim=cfg.MODEL.TRANSFORMER_DIM)
+        if cfg.MODEL.BACKBONE.FEAT_LEVEL == 'mixed':
+            self.feat_proj = MixedFeatureProjection(num_pos=cfg.MODEL.BACKBONE.OUTPUT_SIZE[0] +
+                                                            cfg.MODEL.BACKBONE.OUTPUT_SIZE[6] +
+                                                            cfg.MODEL.BACKBONE.OUTPUT_SIZE[12],
+                                                    input_dim=(sum(cfg.MODEL.BACKBONE.CHANNELS[:6]),
+                                                               sum(cfg.MODEL.BACKBONE.CHANNELS[6:12]),
+                                                               sum(cfg.MODEL.BACKBONE.CHANNELS[12:])),
+                                                    hidden_dim=cfg.MODEL.TRANSFORMER.TRANSFORMER_DIM)
         else:
-            self.feat_proj = SingleFeatureProjection(num_pos=num_pos,
-                                                     input_dim=input_dim,
-                                                     hidden_dim=cfg.MODEL.TRANSFORMER_DIM)
+            self.feat_proj = SingleFeatureProjection(num_pos=cfg.MODEL.BACKBONE.OUTPUT_SIZE[0],
+                                                     input_dim=sum(cfg.MODEL.BACKBONE.CHANNELS),
+                                                     hidden_dim=cfg.MODEL.TRANSFORMER.TRANSFORMER_DIM)
 
         self.transformer = Transformer(
-            d_model=cfg.MODEL.TRANSFORMER_DIM,
-            nhead=cfg.MODEL.MHA_NUM_HEADS,
-            num_encoder_layers=cfg.MODEL.TRANSFORMER_LAYERS,
-            num_decoder_layers=cfg.MODEL.TRANSFORMER_LAYERS,
-            dim_feedforward=cfg.MODEL.FEAT_DIM
+            d_model=cfg.MODEL.TRANSFORMER.TRANSFORMER_DIM,
+            nhead=cfg.MODEL.TRANSFORMER.MHA_NUM_HEADS,
+            num_encoder_layers=cfg.MODEL.TRANSFORMER.TRANSFORMER_LAYERS,
+            num_decoder_layers=cfg.MODEL.TRANSFORMER.TRANSFORMER_LAYERS,
+            dim_feedforward=cfg.MODEL.TRANSFORMER.FEAT_DIM
         )
-        self.mlp_head = MLPHead(in_dim=cfg.MODEL.TRANSFORMER_DIM, hidden_dim=cfg.MODEL.HEAD_DIM)
+        self.mlp_head = MLPHead(in_dim=cfg.MODEL.TRANSFORMER.TRANSFORMER_DIM, hidden_dim=cfg.MODEL.TRANSFORMER.HEAD_DIM)
 
     def forward(self, ref_feat, dist_feat):
         diff_feat = tuple(map(lambda i, j: i - j, ref_feat, dist_feat))
@@ -144,25 +148,12 @@ class Classifier(nn.Module):
 class MultiTask(nn.Module):
     def __init__(self, cfg):
         super().__init__()
-        assert cfg.MODEL.FEAT_EXTRACTOR_LEVEL in ['low', 'medium', 'high', 'mixed']
 
-        hyperparameter = {
-            'low': {'last_feat_dim': 320, 'feat_dim': 320 * 6, 'num_pos': 21 * 21},
-            'medium': {'last_feat_dim': 1088, 'feat_dim': 1088 * 6, 'num_pos': 10 * 10},
-            'high': {'last_feat_dim': 2080, 'feat_dim': 2080 * 6, 'num_pos': 4 * 4},
-            'mixed': {
-                'last_feat_dim': 2080,
-                'feat_dim': (320 * 6, 1088 * 6, 2080 * 6),
-                'num_pos': 21 * 21 + 10 * 10 + 4 * 4}
-        }
+        self.feat_extraction = FeatureExtractionInceptionResNetV2(level=cfg.MODEL.BACKBONE.FEAT_LEVEL)
 
-        self.feat_extraction = FeatureExtractionInceptionResNetV2(level=cfg.MODEL.FEAT_EXTRACTOR_LEVEL)
-
-        self.discriminator = Discriminator(input_dim=hyperparameter[cfg.MODEL.FEAT_EXTRACTOR_LEVEL]['last_feat_dim'])
-        self.classifier = Classifier(input_dim=hyperparameter[cfg.MODEL.FEAT_EXTRACTOR_LEVEL]['last_feat_dim'])
-        self.evaluator = Evaluator(cfg,
-                                   num_pos=hyperparameter[cfg.MODEL.FEAT_EXTRACTOR_LEVEL]['num_pos'],
-                                   input_dim=hyperparameter[cfg.MODEL.FEAT_EXTRACTOR_LEVEL]['feat_dim'])
+        self.discriminator = Discriminator(input_dim=cfg.MODEL.BACKBONE.CHANNELS[-1])
+        self.classifier = Classifier(input_dim=cfg.MODEL.BACKBONE.CHANNELS[-1])
+        self.evaluator = Evaluator(cfg)
 
     def forward(self, ref_img, dist_img):
         ref_feat = self.feat_extraction(ref_img)

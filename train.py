@@ -25,7 +25,7 @@ def main(cfg):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--config', type=str, help='Configuration YAML file for train phase1')
+    parser.add_argument('--config', type=str, help='Configuration YAML file for training')
     args = parser.parse_args()
 
     cfg = get_cfg_defaults()
@@ -35,6 +35,25 @@ if __name__ == '__main__':
         print('Using default configuration file')
         if cfg.TRAIN.PHASE == 2:
             print('Incorrect to train phase2 without loading phase1 weight')
+
+    assert cfg.MODEL.BACKBONE.NAME in ['InceptionResNetV2']
+    assert cfg.MODEL.BACKBONE.FEAT_LEVEL in ['low', 'medium', 'high', 'mixed']
+    assert cfg.MODEL.EVALUATOR in ['IQT']
+
+    if cfg.MODEL.BACKBONE.FEAT_LEVEL == 'low':
+        cfg.MODEL.BACKBONE.CHANNELS = tuple(320 for _ in range(6))
+        cfg.MODEL.BACKBONE.OUTPUT_SIZE = tuple(21 * 21 for _ in range(6))
+    elif cfg.MODEL.BACKBONE.FEAT_LEVEL == 'medium':
+        cfg.MODEL.BACKBONE.CHANNELS = tuple(1088 for _ in range(6))
+        cfg.MODEL.BACKBONE.OUTPUT_SIZE = tuple(10 * 10 for _ in range(6))
+    elif cfg.MODEL.BACKBONE.FEAT_LEVEL == 'high':
+        cfg.MODEL.BACKBONE.CHANNELS = tuple(2080 for _ in range(6))
+        cfg.MODEL.BACKBONE.OUTPUT_SIZE = tuple(4 * 4 for _ in range(6))
+    else:  # mixed
+        cfg.MODEL.BACKBONE.CHANNELS = tuple(320 for _ in range(6)) + tuple(1088 for _ in range(6)) + tuple(
+            2080 for _ in range(6))
+        cfg.MODEL.BACKBONE.OUTPUT_SIZE = tuple(21 * 21 for _ in range(6)) + tuple(10 * 10 for _ in range(6)) + tuple(
+            4 * 4 for _ in range(6))
 
     cfg.freeze()
 
