@@ -43,7 +43,8 @@ class InceptionResNetV2Backbone(Backbone):
                 self.slices.append(nn.Sequential(*inception_resnet_v2_pretrained_features[12][i:i + 2]))
             self.slices.append(nn.Sequential(*inception_resnet_v2_pretrained_features[12][8:],
                                              inception_resnet_v2_pretrained_features[13]))
-        else:  # mixed level feature extraction backbone
+
+        elif level == 'mixed':  # mixed level feature extraction backbone
             self.slices.append(nn.Sequential(*inception_resnet_v2_pretrained_features[:8]))
             for i in range(0, 10, 2):
                 self.slices.append(nn.Sequential(*inception_resnet_v2_pretrained_features[8][i:i + 2]))
@@ -56,6 +57,20 @@ class InceptionResNetV2Backbone(Backbone):
             for i in range(0, 8, 2):
                 self.slices.append(nn.Sequential(*inception_resnet_v2_pretrained_features[12][i:i + 2]))
             self.slices.append(nn.Sequential(*inception_resnet_v2_pretrained_features[12][8:],
+                                             inception_resnet_v2_pretrained_features[13]))
+
+        else:  # reduced mixed level feature extraction backbone
+            self.slices.append(nn.Sequential(*inception_resnet_v2_pretrained_features[:8]))
+            for i in range(0, 10, 5):
+                self.slices.append(nn.Sequential(*inception_resnet_v2_pretrained_features[8][i:i + 5]))
+
+            self.slices.append(nn.Sequential(*inception_resnet_v2_pretrained_features[9:10]))
+            for i in range(0, 20, 10):
+                self.slices.append(nn.Sequential(*inception_resnet_v2_pretrained_features[10][i:i + 10]))
+
+            self.slices.append(nn.Sequential(*inception_resnet_v2_pretrained_features[11:12]))
+            self.slices.append(nn.Sequential(*inception_resnet_v2_pretrained_features[12][0:5]))
+            self.slices.append(nn.Sequential(*inception_resnet_v2_pretrained_features[12][5:],
                                              inception_resnet_v2_pretrained_features[13]))
 
 
