@@ -71,7 +71,7 @@ class Trainer:
 
         if cfg.TRAIN.START_EPOCH != 0:
             self.schedulerG.step(cfg.TRAIN.START_EPOCH)
-            self.schedulerG.step(cfg.TRAIN.START_EPOCH)
+            self.schedulerD.step(cfg.TRAIN.START_EPOCH)
 
         if cfg.TRAIN.LOG_DIR:
             self.writer: SummaryWriter = SummaryWriter(log_dir=cfg.TRAIN.LOG_DIR)
