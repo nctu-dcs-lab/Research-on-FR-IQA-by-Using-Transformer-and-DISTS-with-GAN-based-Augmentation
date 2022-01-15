@@ -1,0 +1,4 @@
+MODEL:
+  BACKBONE:
+    FEAT_LEVEL: high
+  EVALUATOR: Transformer
