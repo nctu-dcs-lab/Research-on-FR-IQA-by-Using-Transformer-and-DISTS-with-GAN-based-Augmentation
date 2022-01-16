@@ -9,7 +9,7 @@ TRAIN:
   LEARNING_RATE:
     NET_D: 5e-05
   LOG_DIR: experiments/phase2-experiment5/logs
-  WEIGHT_DIR: experiments/phase2-experiment5/model
+  WEIGHT_DIR: experiments/phase2-experiment5/models
   PHASE: 2
   RESUME:
     NET_G: experiments/phase1-experiment11/models/netG_epoch200.pth

@@ -11,4 +11,4 @@ TRAIN:
   RESUME:
     NET_G: /home/nelson/research/ACGAN-IQT/experiments/phase1-experiment8/models/netG_epoch100.pth
   START_EPOCH: 0
-  WEIGHT_DIR: experiments/phase2-experiment3/model
+  WEIGHT_DIR: experiments/phase2-experiment3/models

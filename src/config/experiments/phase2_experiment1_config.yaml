@@ -12,4 +12,4 @@ TRAIN:
     NET_D: /home/nelson/research/ACGAN-IQT/experiments/phase1-experiment8/models/netD_epoch100.pth
     NET_G: /home/nelson/research/ACGAN-IQT/experiments/phase1-experiment8/models/netG_epoch100.pth
   START_EPOCH: 0
-  WEIGHT_DIR: experiments/phase2-experiment1/model
+  WEIGHT_DIR: experiments/phase2-experiment1/models

@@ -1,15 +1,15 @@
 DATASETS:
-  BATCH_SIZE: 8
+  BATCH_SIZE: 16
   NUM_WORKERS: 6
 MODEL:
-  FEAT_EXTRACTOR_LEVEL: mixed
+  BACKBONE:
+    FEAT_LEVEL: mixed
 TRAIN:
   NUM_EPOCHS: 200
   LEARNING_RATE:
     NET_D: 1e-05
   LOG_DIR: experiments/phase3-experiment1/logs
-  WEIGHT_DIR: experiments/phase3-experiment1/model
+  WEIGHT_DIR: experiments/phase3-experiment1/models
   PHASE: 3
   RESUME:
-    NET_G: experiments/phase2-experiment4/models/netG_epoch200.pth
-    NET_D: experiments/phase2-experiment4/models/netD_epoch200.pth
+    NET_D: experiments/phase2-experiment5/models/netD_epoch100.pth
