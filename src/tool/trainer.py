@@ -49,28 +49,17 @@ class Trainer:
         )
 
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        self.netG = Generator().to(self.device)
         self.netD = MultiTask(cfg).to(self.device)
-        self.inception = InceptionV3([InceptionV3.BLOCK_INDEX_BY_DIM[cfg.MODEL.INCEPTION_DIMS]]).to(self.device)
 
-        if cfg.TRAIN.RESUME.NET_G:
-            self.netG.load_state_dict(torch.load(cfg.TRAIN.RESUME.NET_G))
         if cfg.TRAIN.RESUME.NET_D:
             self.netD.load_state_dict(torch.load(cfg.TRAIN.RESUME.NET_D))
 
-        self.bce_loss = nn.BCELoss()
-        self.l1_loss = nn.L1Loss()
         self.mse_loss = nn.MSELoss()
-        self.ce_loss = nn.CrossEntropyLoss()
 
-        self.optimizerG = optim.Adam(self.netG.parameters(), lr=cfg.TRAIN.LEARNING_RATE.NET_G)
         self.optimizerD = optim.Adam(self.netD.parameters(), lr=cfg.TRAIN.LEARNING_RATE.NET_D)
-
-        self.schedulerG = CosineAnnealingWarmRestarts(self.optimizerG, T_0=1, T_mult=2)
         self.schedulerD = CosineAnnealingWarmRestarts(self.optimizerD, T_0=1, T_mult=2)
 
         if cfg.TRAIN.START_EPOCH != 0:
-            self.schedulerG.step(cfg.TRAIN.START_EPOCH)
             self.schedulerD.step(cfg.TRAIN.START_EPOCH)
 
         if cfg.TRAIN.LOG_DIR:
@@ -80,7 +69,6 @@ class Trainer:
 
         self.start_epoch = cfg.TRAIN.START_EPOCH
         self.num_epoch = cfg.TRAIN.NUM_EPOCHS
-        self.criterion_weight = cfg.TRAIN.CRITERION_WEIGHT
         self.iteration = self.start_epoch * math.ceil(self.datasets_size['train'] / cfg.DATASETS.BATCH_SIZE)
         self.weight_dir = cfg.TRAIN.WEIGHT_DIR
 
@@ -94,7 +82,6 @@ class Trainer:
                 'val': self.epoch_eval()
             }
 
-            self.schedulerG.step()
             self.schedulerD.step()
 
             self.write_epoch_log(results, epoch + 1)
@@ -119,11 +106,28 @@ class Trainer:
 class TrainerPhase1(Trainer):
     def __init__(self, cfg):
         super(TrainerPhase1, self).__init__(cfg=cfg)
-        self.netG.train()
-        self.netD.train()
+
         self.latent_dim = cfg.MODEL.LATENT_DIM
 
+        self.criterion_weight = cfg.TRAIN.CRITERION_WEIGHT
+        self.bce_loss = nn.BCELoss()
+        self.l1_loss = nn.L1Loss()
+        self.ce_loss = nn.CrossEntropyLoss()
+
+        self.inception = InceptionV3([InceptionV3.BLOCK_INDEX_BY_DIM[cfg.MODEL.INCEPTION_DIMS]]).to(self.device)
+        self.netG = Generator().to(self.device)
+
+        if cfg.TRAIN.RESUME.NET_G:
+            self.netG.load_state_dict(torch.load(cfg.TRAIN.RESUME.NET_G))
+
+        self.optimizerG = optim.Adam(self.netG.parameters(), lr=cfg.TRAIN.LEARNING_RATE.NET_G)
+        self.schedulerG = CosineAnnealingWarmRestarts(self.optimizerG, T_0=1, T_mult=2)
+
+        if cfg.TRAIN.START_EPOCH != 0:
+            self.schedulerG.step(cfg.TRAIN.START_EPOCH)
+
     def epoch_train(self):
+
         record = {
             'gt_scores': [],
             'pred_scores': [],
@@ -138,6 +142,9 @@ class TrainerPhase1(Trainer):
             'fake_qual': 0,
             'cont': 0
         }
+
+        self.netG.train()
+        self.netD.train()
 
         with tqdm(self.dataloaders['train']) as tepoch:
             for ref_imgs, dist_imgs, scores, categories, origin_scores in tepoch:
@@ -372,7 +379,13 @@ class TrainerPhase1(Trainer):
 class TrainerPhase2(Trainer):
     def __init__(self, cfg):
         super(TrainerPhase2, self).__init__(cfg)
+
         self.latent_dim = cfg.MODEL.LATENT_DIM
+
+        self.netG = Generator().to(self.device)
+        if cfg.TRAIN.RESUME.NET_G:
+            self.netG.load_state_dict(torch.load(cfg.TRAIN.RESUME.NET_G))
+        self.netG.eval()
 
     def epoch_train(self):
         record = {
@@ -385,7 +398,6 @@ class TrainerPhase2(Trainer):
             'fake_loss': 0
         }
 
-        self.netG.eval()
         self.netD.train()
 
         with tqdm(self.dataloaders['train']) as tepoch:
@@ -466,7 +478,6 @@ class TrainerPhase2(Trainer):
             'total_loss': 0
         }
 
-        self.netG.eval()
         self.netD.eval()
 
         with tqdm(self.dataloaders['val']) as tepoch:
