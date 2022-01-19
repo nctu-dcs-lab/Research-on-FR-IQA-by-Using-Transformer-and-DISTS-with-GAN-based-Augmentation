@@ -3,7 +3,7 @@ import abc
 import torch
 from torch import nn as nn
 
-from src.modeling.feature_projection import IQTFeatureProjection, SeparateFeatureProjection
+from src.modeling.feature_projection import IQTFeatureProjection, SeparateFeatureProjection, MixedFeatureProjection
 from src.modeling.transformer import Transformer, MLPHead
 
 
@@ -87,10 +87,20 @@ class IQT(TransformerEvaluator):
     def __init__(self, cfg):
         super(IQT, self).__init__(cfg)
         assert cfg.MODEL.BACKBONE.NAME == 'InceptionResNetV2'
-        assert cfg.MODEL.BACKBONE.FEAT_LEVEL in ['low', 'medium', 'high']
+        assert cfg.MODEL.BACKBONE.FEAT_LEVEL in ['low', 'medium', 'high', 'mixed']
 
-        self.feat_proj = IQTFeatureProjection(
-            num_pos=cfg.MODEL.BACKBONE.OUTPUT_SIZE[0],
-            input_dim=sum(cfg.MODEL.BACKBONE.CHANNELS),
-            hidden_dim=cfg.MODEL.TRANSFORMER.TRANSFORMER_DIM
-        )
+        if cfg.MODEL.BACKBONE.FEAT_LEVEL == 'mixed':
+            self.feat_proj = MixedFeatureProjection(
+                num_pos=cfg.MODEL.BACKBONE.OUTPUT_SIZE[0] + cfg.MODEL.BACKBONE.OUTPUT_SIZE[6] +
+                        cfg.MODEL.BACKBONE.OUTPUT_SIZE[12],
+                input_dims=(sum(cfg.MODEL.BACKBONE.CHANNELS[0:6]),
+                            sum(cfg.MODEL.BACKBONE.CHANNELS[6:12]),
+                            sum(cfg.MODEL.BACKBONE.CHANNELS[12:])),
+                hidden_dim=cfg.MODEL.TRANSFORMER.TRANSFORMER_DIM
+            )
+        else:
+            self.feat_proj = IQTFeatureProjection(
+                num_pos=cfg.MODEL.BACKBONE.OUTPUT_SIZE[0],
+                input_dim=sum(cfg.MODEL.BACKBONE.CHANNELS),
+                hidden_dim=cfg.MODEL.TRANSFORMER.TRANSFORMER_DIM
+            )

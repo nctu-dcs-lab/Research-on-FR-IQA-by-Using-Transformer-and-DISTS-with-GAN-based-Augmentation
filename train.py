@@ -37,7 +37,7 @@ if __name__ == '__main__':
             print('Incorrect to train phase2 without loading phase1 weight')
 
     assert cfg.MODEL.BACKBONE.NAME in ['VGG16', 'InceptionResNetV2']
-    assert cfg.MODEL.BACKBONE.FEAT_LEVEL in ['low', 'medium', 'high', 'mixed']
+    assert cfg.MODEL.BACKBONE.FEAT_LEVEL in ['low', 'medium', 'high', 'mixed', 'reduced mixed']
     assert cfg.MODEL.EVALUATOR in ['IQT', 'DISTS', 'Transformer']
 
     if cfg.MODEL.BACKBONE.NAME == 'VGG16':
@@ -52,11 +52,16 @@ if __name__ == '__main__':
     elif cfg.MODEL.BACKBONE.FEAT_LEVEL == 'high':
         cfg.MODEL.BACKBONE.CHANNELS = tuple(2080 for _ in range(6))
         cfg.MODEL.BACKBONE.OUTPUT_SIZE = tuple(4 * 4 for _ in range(6))
-    else:  # mixed
+    elif cfg.MODEL.BACKBONE.FEAT_LEVEL == 'mixed':
         cfg.MODEL.BACKBONE.CHANNELS = tuple(320 for _ in range(6)) + tuple(1088 for _ in range(6)) + tuple(
             2080 for _ in range(6))
         cfg.MODEL.BACKBONE.OUTPUT_SIZE = tuple(21 * 21 for _ in range(6)) + tuple(10 * 10 for _ in range(6)) + tuple(
             4 * 4 for _ in range(6))
+    else:  # reduced mixed
+        cfg.MODEL.BACKBONE.CHANNELS = tuple(320 for _ in range(3)) + tuple(1088 for _ in range(3)) + tuple(
+            2080 for _ in range(3))
+        cfg.MODEL.BACKBONE.OUTPUT_SIZE = tuple(21 * 21 for _ in range(3)) + tuple(10 * 10 for _ in range(3)) + tuple(
+            4 * 4 for _ in range(3))
 
     cfg.freeze()
 
