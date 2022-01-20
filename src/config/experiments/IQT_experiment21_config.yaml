@@ -1,0 +1,17 @@
+DATASETS:
+  BATCH_SIZE: 16
+  NUM_WORKERS: 6
+MODEL:
+  BACKBONE:
+    FEAT_LEVEL: medium
+  TRANSFORMER:
+    HEAD_DIM: 512
+    TRANSFORMER_DIM: 256
+    TRANSFORMER_LAYERS: 2
+TRAIN:
+  NUM_EPOCHS: 200
+  LEARNING_RATE:
+    NET_D: 5e-05
+  LOG_DIR: experiments/IQT-experiment21/logs
+  WEIGHT_DIR: experiments/IQT-experiment21/models
+  PHASE: 0
