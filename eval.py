@@ -1,5 +1,4 @@
 import argparse
-from pathlib import Path
 
 import torch
 
@@ -12,11 +11,7 @@ from src.tool.evaluate import evaluate
 def main(args, cfg):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    dataloaders, datasets_size = create_dataloaders(
-        Path(cfg.DATASETS.ROOT_DIR),
-        batch_size=cfg.DATASETS.BATCH_SIZE,
-        num_workers=cfg.DATASETS.NUM_WORKERS
-    )
+    dataloaders, datasets_size = create_dataloaders(cfg)
 
     netG = MultiTask(cfg).to(device)
     netG.load_state_dict(torch.load(args.netD_path))

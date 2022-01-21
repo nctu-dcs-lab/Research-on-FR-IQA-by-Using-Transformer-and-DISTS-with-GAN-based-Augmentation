@@ -1,6 +1,5 @@
 import math
 import os
-from pathlib import Path
 
 import numpy as np
 import torch
@@ -42,11 +41,7 @@ def get_activations(imgs, model):
 class Trainer:
     def __init__(self, cfg):
 
-        self.dataloaders, self.datasets_size = create_dataloaders(
-            Path(cfg.DATASETS.ROOT_DIR),
-            batch_size=cfg.DATASETS.BATCH_SIZE,
-            num_workers=cfg.DATASETS.NUM_WORKERS
-        )
+        self.dataloaders, self.datasets_size = create_dataloaders(cfg)
 
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.netD = MultiTask(cfg).to(self.device)
