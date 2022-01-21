@@ -118,6 +118,10 @@ class MultiTask(nn.Module):
         else:
             self.backbone = InceptionResNetV2Backbone(level=cfg.MODEL.BACKBONE.FEAT_LEVEL)
 
+        if cfg.MODEL.BACKBONE.FIXED:
+            for parameter in self.backbone.parameters():
+                parameter.requires_grad = False
+
         self.discriminator = Discriminator(input_dim=cfg.MODEL.BACKBONE.CHANNELS[-1])
         self.classifier = Classifier(input_dim=cfg.MODEL.BACKBONE.CHANNELS[-1])
 
