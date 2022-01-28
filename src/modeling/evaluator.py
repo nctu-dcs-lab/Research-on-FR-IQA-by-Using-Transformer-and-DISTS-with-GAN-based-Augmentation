@@ -17,10 +17,10 @@ class Evaluator(nn.Module, metaclass=abc.ABCMeta):
 
 
 class DISTS(Evaluator):
-    def __init__(self, cfg):
+    def __init__(self, backbone_channels):
         super(DISTS, self).__init__()
 
-        self.channels = cfg.MODEL.BACKBONE.CHANNELS
+        self.channels = backbone_channels
 
         alpha = torch.zeros(1, sum(self.channels), 1, 1)
         beta = torch.zeros(1, sum(self.channels), 1, 1)
@@ -56,12 +56,12 @@ class DISTS(Evaluator):
 
 
 class TransformerEvaluator(Evaluator):
-    def __init__(self, cfg):
+    def __init__(self, cfg, backbone_channels, backbone_output_size):
         super(TransformerEvaluator, self).__init__()
 
         self.feat_proj = SeparateFeatureProjection(
-            num_pos=sum(cfg.MODEL.BACKBONE.OUTPUT_SIZE),
-            input_dims=cfg.MODEL.BACKBONE.CHANNELS,
+            num_pos=sum(backbone_output_size),
+            input_dims=backbone_channels,
             hidden_dim=cfg.MODEL.TRANSFORMER.TRANSFORMER_DIM
         )
 
@@ -84,23 +84,22 @@ class TransformerEvaluator(Evaluator):
 
 
 class IQT(TransformerEvaluator):
-    def __init__(self, cfg):
-        super(IQT, self).__init__(cfg)
+    def __init__(self, cfg, backbone_channels, backbone_output_size):
+        super(IQT, self).__init__(cfg, backbone_channels, backbone_output_size)
         assert cfg.MODEL.BACKBONE.NAME == 'InceptionResNetV2'
         assert cfg.MODEL.BACKBONE.FEAT_LEVEL in ['low', 'medium', 'high', 'mixed']
 
         if cfg.MODEL.BACKBONE.FEAT_LEVEL == 'mixed':
             self.feat_proj = MixedFeatureProjection(
-                num_pos=cfg.MODEL.BACKBONE.OUTPUT_SIZE[0] + cfg.MODEL.BACKBONE.OUTPUT_SIZE[6] +
-                        cfg.MODEL.BACKBONE.OUTPUT_SIZE[12],
-                input_dims=(sum(cfg.MODEL.BACKBONE.CHANNELS[0:6]),
-                            sum(cfg.MODEL.BACKBONE.CHANNELS[6:12]),
-                            sum(cfg.MODEL.BACKBONE.CHANNELS[12:])),
+                num_pos=backbone_output_size[0] + backbone_output_size[6] + backbone_output_size[12],
+                input_dims=(sum(backbone_channels[0:6]),
+                            sum(backbone_channels[6:12]),
+                            sum(backbone_channels[12:])),
                 hidden_dim=cfg.MODEL.TRANSFORMER.TRANSFORMER_DIM
             )
         else:
             self.feat_proj = IQTFeatureProjection(
-                num_pos=cfg.MODEL.BACKBONE.OUTPUT_SIZE[0],
-                input_dim=sum(cfg.MODEL.BACKBONE.CHANNELS),
+                num_pos=backbone_output_size[0],
+                input_dim=sum(backbone_channels),
                 hidden_dim=cfg.MODEL.TRANSFORMER.TRANSFORMER_DIM
             )

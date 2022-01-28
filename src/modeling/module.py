@@ -118,19 +118,32 @@ class MultiTask(nn.Module):
         else:
             self.backbone = InceptionResNetV2Backbone(level=cfg.MODEL.BACKBONE.FEAT_LEVEL)
 
+        # Calculate backbone output channels and feature map size
+        sample_input = torch.randn((1, 3, cfg.DATASETS.IMG_SIZE[0], cfg.DATASETS.IMG_SIZE[1]))
+        sample_output = self.backbone(sample_input)
+        backbone_channels = []
+        backbone_output_size = []
+
+        for output in sample_output:
+            backbone_channels.append(output.shape[1])
+            backbone_output_size.append(output.shape[2] * output.shape[3])
+
+        backbone_channels = tuple(backbone_channels)
+        backbone_output_size = tuple(backbone_output_size)
+
         if cfg.MODEL.BACKBONE.FIXED:
             for parameter in self.backbone.parameters():
                 parameter.requires_grad = False
 
-        self.discriminator = Discriminator(input_dim=cfg.MODEL.BACKBONE.CHANNELS[-1])
-        self.classifier = Classifier(input_dim=cfg.MODEL.BACKBONE.CHANNELS[-1])
+        self.discriminator = Discriminator(input_dim=backbone_channels[-1])
+        self.classifier = Classifier(input_dim=backbone_channels[-1])
 
         if cfg.MODEL.EVALUATOR == 'IQT':
-            self.evaluator = IQT(cfg)
+            self.evaluator = IQT(cfg, backbone_channels, backbone_output_size)
         elif cfg.MODEL.EVALUATOR == 'DISTS':
-            self.evaluator = DISTS(cfg)
+            self.evaluator = DISTS(backbone_channels)
         else:
-            self.evaluator = TransformerEvaluator(cfg)
+            self.evaluator = TransformerEvaluator(cfg, backbone_channels, backbone_output_size)
 
     def forward(self, ref_img, dist_img):
         ref_feat = self.backbone(ref_img)
