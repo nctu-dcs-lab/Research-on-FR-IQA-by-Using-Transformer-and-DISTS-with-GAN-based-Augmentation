@@ -1,0 +1,20 @@
+DATASETS:
+  BATCH_SIZE: 16
+  NUM_WORKERS: 6
+MODEL:
+  BACKBONE:
+    FEAT_LEVEL: mixed
+  TRANSFORMER:
+    HEAD_DIM: 512
+    TRANSFORMER_DIM: 256
+    TRANSFORMER_LAYERS: 2
+TRAIN:
+  NUM_EPOCHS: 200
+  LEARNING_RATE:
+    NET_D: 2e-4
+  LOG_DIR: experiments/phase2-experiment8/logs
+  WEIGHT_DIR: experiments/phase2-experiment8/models
+  PHASE: 2
+  RESUME:
+    NET_G: experiments/phase1-experiment12/models/netG_epoch100.pth
+    NET_D: experiments/phase1-experiment12/models/netD_epoch100.pth
