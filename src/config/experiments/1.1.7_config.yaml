@@ -5,7 +5,7 @@ DATASETS:
 #  ROOT_DIR: ../data/PIPAL(processed)
 MODEL:
   BACKBONE:
-    FEAT_LEVEL: mixed
+    #    FEAT_LEVEL: low
     FIXED: False
   #    NAME: InceptionResNetV2
   #  EVALUATOR: IQT
@@ -31,11 +31,11 @@ TRAIN:
   LEARNING_RATE:
     NET_D: 2e-04
   #    NET_G: 5e-05
-  LOG_DIR: experiments/1.7.3/logs
+  LOG_DIR: experiments/1.1.7/logs
   NUM_EPOCHS: 200
   PHASE: 0
   #  RESUME:
   #    NET_D:
   #    NET_G:
   #  START_EPOCH: 0
-  WEIGHT_DIR: experiments/1.7.3/models
+  WEIGHT_DIR: experiments/1.1.7/models
