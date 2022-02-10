@@ -22,6 +22,6 @@ TRAIN:
   LEARNING_RATE:
     NET_D: 4e-05
     NET_G: 4e-04
-  LOG_DIR: experiments/phase1-experiment12/logs
+  LOG_DIR: experiments/2.0.3.2/logs
   NUM_EPOCHS: 200
-  WEIGHT_DIR: experiments/phase1-experiment12/models
+  WEIGHT_DIR: experiments/2.0.3.2/models

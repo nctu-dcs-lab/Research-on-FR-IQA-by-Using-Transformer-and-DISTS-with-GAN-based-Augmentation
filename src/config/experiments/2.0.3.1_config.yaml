@@ -13,8 +13,8 @@ TRAIN:
   LEARNING_RATE:
     NET_D: 4e-05
     NET_G: 4e-04
-  LOG_DIR: experiments/phase1-experiment11/logs
-  WEIGHT_DIR: experiments/phase1-experiment11/models
+  LOG_DIR: experiments/2.0.3.1/logs
+  WEIGHT_DIR: experiments/2.0.3.1/models
 MODEL:
   FEAT_EXTRACTOR_LEVEL: mixed
 DATASETS:

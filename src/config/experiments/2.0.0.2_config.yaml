@@ -13,5 +13,5 @@ TRAIN:
   LEARNING_RATE:
     NET_D: 4e-05
     NET_G: 1e-04
-  LOG_DIR: experiments/phase1-experiment8/logs
-  WEIGHT_DIR: experiments/phase1-experiment8/models
+  LOG_DIR: experiments/2.0.0.2/logs
+  WEIGHT_DIR: experiments/2.0.0.2/models

@@ -1,0 +1,14 @@
+DATASETS:
+  BATCH_SIZE: 16
+  NUM_WORKERS: 10
+  ROOT_DIR: ../data/PIPAL(processed)
+MODEL:
+  LATENT_DIM: 100
+TRAIN:
+  LEARNING_RATE: 1e-05
+  LOG_DIR: experiments/2.1.0.1/logs
+  NUM_EPOCHS: 500
+  RESUME:
+    NET_G: experiments/2.0.0.2/models/netG_epoch100.pth
+  START_EPOCH: 0
+  WEIGHT_DIR: experiments/2.1.0.1/models

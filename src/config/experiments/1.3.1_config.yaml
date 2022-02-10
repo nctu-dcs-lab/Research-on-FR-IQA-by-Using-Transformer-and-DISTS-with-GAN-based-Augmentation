@@ -12,6 +12,6 @@ TRAIN:
   NUM_EPOCHS: 200
   LEARNING_RATE:
     NET_D: 5e-05
-  LOG_DIR: experiments/IQT-experiment21/logs
-  WEIGHT_DIR: experiments/IQT-experiment21/models
+  LOG_DIR: experiments/1.3.1/logs
+  WEIGHT_DIR: experiments/1.3.1/models
   PHASE: 0

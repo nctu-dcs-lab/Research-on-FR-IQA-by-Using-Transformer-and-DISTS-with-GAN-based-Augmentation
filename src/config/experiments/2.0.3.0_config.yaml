@@ -11,7 +11,12 @@ TRAIN:
     ERRG_QUAL: 1.0
     ERRG_CONT: 0.1
   LEARNING_RATE:
-    NET_D: 2e-05
+    NET_D: 4e-05
     NET_G: 1e-04
-  LOG_DIR: experiments/phase1-experiment7/logs
-  WEIGHT_DIR: experiments/phase1-experiment7/models
+  LOG_DIR: experiments/2.0.3.0/logs
+  WEIGHT_DIR: experiments/2.0.3.0/models
+MODEL:
+  FEAT_EXTRACTOR_LEVEL: mixed
+DATASETS:
+  BATCH_SIZE: 16
+  NUM_WORKERS: 6
