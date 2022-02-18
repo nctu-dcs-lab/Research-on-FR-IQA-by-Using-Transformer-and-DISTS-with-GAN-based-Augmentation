@@ -8,6 +8,7 @@ from tqdm import tqdm
 from src.config.config import get_cfg_defaults
 from src.data.dataset import PIPAL
 from src.modeling.module import MultiTask
+from src.tool.evaluate import calculate_correlation_coefficient
 
 num_epoch = 100
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -56,6 +57,8 @@ medium_level_iqt.eval()
 criterion = nn.MSELoss()
 
 running_loss = 0
+gt_scores = []
+pred_scores = []
 
 for ref_imgs, dist_imgs, scores, categories, origin_scores in tqdm(dataloaders['val']):
     ref_imgs = ref_imgs.to(device)
@@ -78,7 +81,44 @@ for ref_imgs, dist_imgs, scores, categories, origin_scores in tqdm(dataloaders['
 
     # statistics
     running_loss += loss.item() * ref_imgs.size(0)
+    gt_scores.append(origin_scores)
+    pred_scores.append(final_pred.cpu().detach())
 
 epoch_loss = running_loss / datasets_size['val']
 
+plcc, srcc, krcc = calculate_correlation_coefficient(
+    torch.cat(gt_scores).numpy(),
+    torch.cat(pred_scores).numpy()
+)
+
 print(f'val Loss: {epoch_loss}')
+print(f'val PLCC: {plcc}, SRCC: {srcc}, KRCC: {krcc}')
+
+gt_scores = []
+pred_scores = []
+
+for ref_imgs, dist_imgs, _, _, origin_scores in tqdm(dataloaders['test']):
+    ref_imgs = ref_imgs.to(device)
+    dist_imgs = dist_imgs.to(device)
+
+    # Format batch
+    bs, ncrops, c, h, w = ref_imgs.size()
+
+    _, _, low_level_pred_scores = low_level_iqt(ref_imgs.view(-1, c, h, w), dist_imgs.view(-1, c, h, w))
+    low_level_pred = low_level_pred_scores.view(bs, ncrops, -1).mean(1).view(-1)
+
+    _, _, medium_level_pred_scores = medium_level_iqt(ref_imgs.view(-1, c, h, w),
+                                                      dist_imgs.view(-1, c, h, w))
+    medium_level_pred = medium_level_pred_scores.view(bs, ncrops, -1).mean(1).view(-1)
+
+    final_pred = (low_level_pred + medium_level_pred) / 2
+
+    gt_scores.append(origin_scores)
+    pred_scores.append(final_pred.cpu().detach())
+
+plcc, srcc, krcc = calculate_correlation_coefficient(
+    torch.cat(gt_scores).numpy(),
+    torch.cat(pred_scores).numpy()
+)
+
+print(f'test PLCC: {plcc}, SRCC: {srcc}, KRCC: {krcc}')
