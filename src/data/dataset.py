@@ -110,11 +110,17 @@ def create_dataloaders(data_dir, batch_size=16, num_workers=10):
     datasets_size = {x: len(datasets[x]) for x in ['train', 'val', 'test']}
 
     # DataLoader
-    dataloaders = {
-        x: DataLoader(datasets[x],
-                      batch_size=batch_size,
-                      shuffle=True,
-                      num_workers=num_workers)
-        for x in ['train', 'val', 'test']
-    }
+    dataloaders = {}
+    for x in ['train', 'val', 'test']:
+        if x == 'train':
+            dataloaders[x] = DataLoader(datasets[x],
+                                        batch_size=batch_size,
+                                        shuffle=True,
+                                        num_workers=num_workers)
+        else:
+            dataloaders[x] = DataLoader(datasets[x],
+                                        batch_size=batch_size,
+                                        shuffle=False,
+                                        num_workers=num_workers)
+
     return dataloaders, datasets_size
