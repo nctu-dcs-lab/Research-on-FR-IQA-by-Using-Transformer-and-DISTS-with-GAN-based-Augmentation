@@ -112,11 +112,17 @@ def create_dataloaders(cfg):
     datasets_size = {x: len(datasets[x]) for x in ['train', 'val', 'test']}
 
     # DataLoader
-    dataloaders = {
-        x: DataLoader(datasets[x],
-                      batch_size=cfg.DATASETS.BATCH_SIZE,
-                      shuffle=True,
-                      num_workers=cfg.DATASETS.NUM_WORKERS)
-        for x in ['train', 'val', 'test']
-    }
+    dataloaders = {}
+    for x in ['train', 'val', 'test']:
+        if x == 'train':
+            dataloaders[x] = DataLoader(datasets[x],
+                                        batch_size=cfg.DATASETS.BATCH_SIZE,
+                                        shuffle=True,
+                                        num_workers=cfg.DATASETS.NUM_WORKERS)
+        else:
+            dataloaders[x] = DataLoader(datasets[x],
+                                        batch_size=cfg.DATASETS.BATCH_SIZE,
+                                        shuffle=False,
+                                        num_workers=cfg.DATASETS.NUM_WORKERS)
+
     return dataloaders, datasets_size
