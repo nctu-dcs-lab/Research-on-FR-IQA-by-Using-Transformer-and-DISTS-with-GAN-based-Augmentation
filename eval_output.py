@@ -14,18 +14,18 @@ def main(args, cfg):
 
     dataloaders, datasets_size = create_dataloaders(cfg)
 
-    netG = MultiTask(cfg).to(device)
-    netG.load_state_dict(torch.load(args.netD_path))
+    netD = MultiTask(cfg).to(device)
+    netD.load_state_dict(torch.load(args.netD_path))
 
     results = {}
     for mode in ['val', 'test']:
-        results[mode] = evaluate(dataloaders[mode], netG, device)
+        results[mode] = evaluate(dataloaders[mode], netD, device)
         print(f'{mode}')
         print(f'PLCC: {results[mode]["PLCC"]}')
         print(f'SRCC: {results[mode]["SRCC"]}')
         print(f'KRCC: {results[mode]["KRCC"]}')
 
-    with open('output.pickle', 'wb') as handle:
+    with open(args.output_file + '.pickle', 'wb') as handle:
         pickle.dump(results, handle)
 
 
@@ -34,6 +34,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--config', type=str, help='Configuration YAML file for evaluating')
     parser.add_argument('--netD_path', required=True, type=str, help='Load model path')
+    parser.add_argument('--output_file', default='output', type=str, help='Result file name')
     args = parser.parse_args()
 
     cfg = get_cfg_defaults()
