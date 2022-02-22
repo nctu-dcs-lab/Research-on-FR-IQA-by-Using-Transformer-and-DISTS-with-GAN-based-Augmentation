@@ -49,6 +49,9 @@ def main(args, cfg):
                     record['gt_scores'].append(origin_scores)
                     record['pred_scores'].append(pred_scores_avg.cpu().detach())
 
+            record['gt_scores'] = torch.cat(record['gt_scores']).numpy()
+            record['pred_scores'] = torch.cat(record['pred_scores']).numpy()
+
         records[mode] = record
 
     with open(args.output_file + '.pickle', 'wb') as handle:
