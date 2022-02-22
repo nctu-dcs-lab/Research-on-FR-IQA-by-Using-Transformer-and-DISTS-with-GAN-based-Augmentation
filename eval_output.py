@@ -22,6 +22,7 @@ def main(args, cfg):
     netD = MultiTask(cfg).to(device)
     netD.load_state_dict(torch.load(args.netD_path))
 
+    records = {}
     for mode in ['val', 'test']:
         record = {
             'gt_scores': [],
@@ -48,8 +49,10 @@ def main(args, cfg):
                     record['gt_scores'].append(origin_scores)
                     record['pred_scores'].append(pred_scores_avg.cpu().detach())
 
-    with open('output.pickle', 'wb') as handle:
-        pickle.dump(record, handle)
+        records[mode] = record
+
+    with open(args.output_file + '.pickle', 'wb') as handle:
+        pickle.dump(records, handle)
 
 
 if __name__ == '__main__':
@@ -57,6 +60,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--config', type=str, help='Configuration YAML file for evaluating')
     parser.add_argument('--netD_path', required=True, type=str, help='Load model path')
+    parser.add_argument('--output_file', default='output', type=str, help='Result file name')
     args = parser.parse_args()
 
     cfg = get_cfg_defaults()
