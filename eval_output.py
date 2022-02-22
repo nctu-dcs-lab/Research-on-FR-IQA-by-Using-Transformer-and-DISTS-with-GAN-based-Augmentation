@@ -14,12 +14,12 @@ def main(args, cfg):
 
     dataloaders, datasets_size = create_dataloaders(cfg)
 
-    netG = MultiTask(cfg).to(device)
-    netG.load_state_dict(torch.load(args.netD_path))
+    netD = MultiTask(cfg).to(device)
+    netD.load_state_dict(torch.load(args.netD_path))
 
     results = {}
     for mode in ['val', 'test']:
-        results[mode] = evaluate(dataloaders[mode], netG, device)
+        results[mode] = evaluate(dataloaders[mode], netD, device)
         print(f'{mode}')
         print(f'PLCC: {results[mode]["PLCC"]}')
         print(f'SRCC: {results[mode]["SRCC"]}')
