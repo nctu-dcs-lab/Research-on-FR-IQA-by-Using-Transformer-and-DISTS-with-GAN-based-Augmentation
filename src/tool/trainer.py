@@ -110,7 +110,7 @@ class TrainerPhase1(Trainer):
         self.ce_loss = nn.CrossEntropyLoss()
 
         self.inception = InceptionV3([InceptionV3.BLOCK_INDEX_BY_DIM[cfg.MODEL.INCEPTION_DIMS]]).to(self.device)
-        self.netG = Generator().to(self.device)
+        self.netG = Generator(img_shape=(3, cfg.DATASETS.IMG_SIZE[0], cfg.DATASETS.IMG_SIZE[1])).to(self.device)
 
         if cfg.TRAIN.RESUME.NET_G:
             self.netG.load_state_dict(torch.load(cfg.TRAIN.RESUME.NET_G))
