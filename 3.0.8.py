@@ -6,11 +6,11 @@ from src.tool.evaluate import calculate_correlation_coefficient
 
 results = []
 result_path = [
-    'output/1.1.7_result.pickle',
-    'output/1.3.2_result.pickle',
-    'output/1.5.1_result.pickle',
-    'output/2.2.3.2_result.pickle',
-    'output/4.0.0_result.pickle'
+    'pred_scores/1.1.7 pred_scores.pickle',
+    'pred_scores/1.3.2 pred_scores.pickle',
+    'pred_scores/1.5.1 pred_scores.pickle',
+    'pred_scores/2.2.3.2 pred_scores.pickle',
+    'pred_scores/4.0.0 pred_scores.pickle'
 ]
 
 for path in result_path:
