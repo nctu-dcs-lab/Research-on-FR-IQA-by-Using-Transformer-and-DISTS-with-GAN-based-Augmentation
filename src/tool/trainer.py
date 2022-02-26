@@ -3,6 +3,7 @@ import os
 
 import numpy as np
 import torch
+import wandb
 from pytorch_fid.fid_score import calculate_frechet_distance
 from pytorch_fid.inception import InceptionV3
 from torch import optim, nn
@@ -58,6 +59,8 @@ class Trainer:
             self.schedulerD.step(cfg.TRAIN.START_EPOCH)
 
         if cfg.TRAIN.LOG_DIR:
+            wandb.tensorboard.patch(root_logdir=cfg.TRAIN.LOG_DIR, pytorch=True)
+            wandb.init(project='Thesis-Project', config=cfg)
             self.writer: SummaryWriter = SummaryWriter(log_dir=cfg.TRAIN.LOG_DIR)
         else:
             self.writer: SummaryWriter = SummaryWriter()
@@ -84,6 +87,7 @@ class Trainer:
             if self.weight_dir:
                 self.save_weight(epoch + 1)
         self.writer.close()
+        wandb.finish()
 
     def epoch_train(self):
         pass
