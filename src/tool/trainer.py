@@ -47,7 +47,7 @@ class Trainer:
         self.netD = MultiTask(cfg).to(self.device)
 
         if cfg.TRAIN.RESUME.NET_D:
-            self.netD.load_state_dict(torch.load(cfg.TRAIN.RESUME.NET_D))
+            self.netD.load_state_dict(torch.load(cfg.TRAIN.RESUME.NET_D, map_location='cuda:0'))
 
         self.mse_loss = nn.MSELoss()
 

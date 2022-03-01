@@ -10,7 +10,7 @@ def main(cfg):
     if cfg.TRAIN.WEIGHT_DIR and not os.path.isdir(cfg.TRAIN.WEIGHT_DIR):
         os.makedirs(cfg.TRAIN.WEIGHT_DIR)
 
-    if cfg.TRAIN.LOG_DIR and os.path.isdir(cfg.TRAIN.LOG_DIR):
+    if cfg.TRAIN.LOG_DIR and os.path.isdir(cfg.TRAIN.LOG_DIR) and not cfg.TRAIN.RESUME.NET_D and not cfg.TRAIN.RESUME.NET_G:
         shutil.rmtree(cfg.TRAIN.LOG_DIR)
 
     if cfg.TRAIN.PHASE == 1:
