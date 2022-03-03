@@ -321,6 +321,8 @@ class TrainerPhase1(Trainer):
         result = {
             'real_clf': 0,
             'real_qual': 0,
+            'fake_clf': 0,
+            'fake_qual': 0
         }
 
         self.netG.eval()
@@ -343,6 +345,25 @@ class TrainerPhase1(Trainer):
                 record['errD_real_clf'] = self.ce_loss(pred_categories_avg, categories).item()
                 record['errD_real_qual'] = self.mse_loss(pred_scores_avg, scores).item()
 
+                """
+                Evaluate fake distorted images
+                """
+                noise = torch.randn(bs, self.latent_dim, device=self.device)
+
+                fake_imgs = self.netG(
+                    ref_imgs.view(-1, c, h, w),
+                    noise.repeat_interleave(ncrops, dim=0),
+                    scores.repeat_interleave(ncrops).view(bs * ncrops, -1),
+                    categories.repeat_interleave(ncrops).view(bs * ncrops, -1).float()
+                )
+
+                _, pred_categories, pred_scores = self.netD(fake_imgs.view(-1, c, h, w), dist_imgs.view(-1, c, h, w))
+                pred_scores_avg = pred_scores.view(bs, ncrops, -1).mean(1).view(-1)
+                pred_categories_avg = pred_categories.view(bs, ncrops, -1).mean(1)
+
+                record['errD_fake_clf'] = self.ce_loss(pred_categories_avg, categories).item()
+                record['errD_fake_qual'] = self.mse_loss(pred_scores_avg, scores).item()
+
             # Record original scores and predict scores
             record['gt_scores'].append(origin_scores)
             record['pred_scores'].append(pred_scores_avg.cpu().detach())
@@ -352,9 +373,13 @@ class TrainerPhase1(Trainer):
             """
             result['real_clf'] += record['errD_real_clf'] * bs
             result['real_qual'] += record['errD_real_qual'] * bs
+            result['fake_clf'] += record['errD_fake_clf'] * bs
+            result['fake_qual'] += record['errD_fake_qual'] * bs
 
         result['real_clf'] /= self.datasets_size['val']
         result['real_qual'] /= self.datasets_size['val']
+        result['fake_clf'] /= self.datasets_size['val']
+        result['fake_qual'] /= self.datasets_size['val']
 
         """
         Calculate correlation coefficient
