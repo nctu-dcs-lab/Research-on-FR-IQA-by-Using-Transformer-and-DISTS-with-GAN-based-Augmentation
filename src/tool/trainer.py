@@ -9,7 +9,6 @@ from pytorch_fid.inception import InceptionV3
 from torch import optim, nn
 from torch.nn.functional import adaptive_avg_pool2d
 from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
-from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from src.data.dataset import create_dataloaders
@@ -58,12 +57,7 @@ class Trainer:
         if cfg.TRAIN.START_EPOCH != 0:
             self.schedulerD.step(cfg.TRAIN.START_EPOCH)
 
-        if cfg.TRAIN.LOG_DIR:
-            wandb.tensorboard.patch(root_logdir=cfg.TRAIN.LOG_DIR, pytorch=True)
-            wandb.init(project='Thesis-Project', config=cfg)
-            self.writer: SummaryWriter = SummaryWriter(log_dir=cfg.TRAIN.LOG_DIR)
-        else:
-            self.writer: SummaryWriter = SummaryWriter()
+        wandb.init(project='Thesis-Project', config=cfg)
 
         self.start_epoch = cfg.TRAIN.START_EPOCH
         self.num_epoch = cfg.TRAIN.NUM_EPOCHS
@@ -86,8 +80,6 @@ class Trainer:
 
             if self.weight_dir:
                 self.save_weight(epoch + 1)
-        self.writer.close()
-        wandb.finish()
 
     def epoch_train(self):
         pass
@@ -271,7 +263,7 @@ class TrainerPhase1(Trainer):
                 })
 
                 if self.iteration % 100 == 0:
-                    write_iteration_log(self.writer, record, self.iteration, self.criterion_weight)
+                    write_iteration_log(record, self.iteration, self.criterion_weight)
 
                 """
                 Record epoch loss
@@ -393,7 +385,7 @@ class TrainerPhase1(Trainer):
         return result
 
     def write_epoch_log(self, results, epoch):
-        write_epoch_log(self.writer, results, epoch)
+        write_epoch_log(results, epoch, phase=1)
 
     def save_weight(self, epoch):
         super(TrainerPhase1, self).save_weight(epoch)
@@ -567,19 +559,7 @@ class TrainerPhase2(Trainer):
         return result
 
     def write_epoch_log(self, results, epoch):
-        self.writer.add_scalars(
-            'Loss', {
-                'train_real': results['train']['real_loss'],
-                'val_real': results['val']['real_loss'],
-                'train_fake': results['train']['fake_loss'],
-                'val_fake': results['val']['fake_loss']
-            },
-            epoch
-        )
-        self.writer.add_scalars('PLCC', {x: results[x]['PLCC'] for x in ['train', 'val']}, epoch)
-        self.writer.add_scalars('SRCC', {x: results[x]['SRCC'] for x in ['train', 'val']}, epoch)
-        self.writer.add_scalars('KRCC', {x: results[x]['KRCC'] for x in ['train', 'val']}, epoch)
-        self.writer.flush()
+        write_epoch_log(results, epoch, phase=2)
 
 
 class TrainerPhase3(Trainer):
@@ -698,8 +678,4 @@ class TrainerPhase3(Trainer):
         return result
 
     def write_epoch_log(self, results, epoch):
-        self.writer.add_scalars('Loss', {phase: results[phase]['loss'] for phase in ['train', 'val']}, epoch)
-        self.writer.add_scalars('PLCC', {x: results[x]['PLCC'] for x in ['train', 'val']}, epoch)
-        self.writer.add_scalars('SRCC', {x: results[x]['SRCC'] for x in ['train', 'val']}, epoch)
-        self.writer.add_scalars('KRCC', {x: results[x]['KRCC'] for x in ['train', 'val']}, epoch)
-        self.writer.flush()
+        write_epoch_log(results, epoch, phase=3)

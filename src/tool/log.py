@@ -1,75 +1,91 @@
-from torch.utils.tensorboard import SummaryWriter
+import wandb
+from torchvision.utils import make_grid
 
 
-def write_iteration_log(writer: SummaryWriter, record, iteration, criterion_weight):
-    writer.add_scalars(
-        'Loss_netD', {
-            'total': record['errD'],
-            'weighted_real_adv': criterion_weight['ERRD_REAL_ADV'] * record['errD_real_adv'],
-            'weighted_real_clf': criterion_weight['ERRD_REAL_CLF'] * record['errD_real_clf'],
-            'weighted_real_qual': criterion_weight['ERRD_REAL_QUAL'] * record['errD_real_qual'],
-            'weighted_fake_adv': criterion_weight['ERRD_FAKE_ADV'] * record['errD_fake_adv'],
-            'weighted_fake_clf': criterion_weight['ERRD_FAKE_CLF'] * record['errD_fake_clf']
-        }, iteration // 100
-    )
+def write_iteration_log(record, iteration, criterion_weight):
+    real_imgs = wandb.Image(make_grid(record['real_imgs']))
+    fake_imgs = wandb.Image(make_grid(record['fake_imgs']))
 
-    writer.add_scalars(
-        'Loss_netG', {
-            'total': record['errG'],
-            'weighted_adv': criterion_weight['ERRG_ADV'] * record['errG_adv'],
-            'weighted_clf': criterion_weight['ERRG_CLF'] * record['errG_clf'],
-            'weighted_qual': criterion_weight['ERRG_QUAL'] * record['errG_qual'],
-            'weighted_cont': criterion_weight['ERRG_CONT'] * record['errG_cont']
-        }, iteration // 100
-    )
+    wandb.log({
+        'hundred iteration': iteration // 100,
 
-    writer.add_scalars(
-        'Loss_adversarial', {
-            'netD_real': record['errD_real_adv'],
-            'netD_fake': record['errD_fake_adv'],
-            'netG_fake': record['errG_adv']
-        }, iteration // 100
-    )
+        'netD/total_loss': record['errD'],
+        'netD/weighted_real_adv_loss': criterion_weight['ERRD_REAL_ADV'] * record['errD_real_adv'],
+        'netD/weighted_real_clf_loss': criterion_weight['ERRD_REAL_CLF'] * record['errD_real_clf'],
+        'netD/weighted_real_qual_loss': criterion_weight['ERRD_REAL_QUAL'] * record['errD_real_qual'],
+        'netD/weighted_fake_adv_loss': criterion_weight['ERRD_FAKE_ADV'] * record['errD_fake_adv'],
+        'netD/weighted_fake_clf_loss': criterion_weight['ERRD_FAKE_CLF'] * record['errD_fake_clf'],
+        'netD/real_adv_loss': record['errD_real_adv'],
+        'netD/fake_adv_loss': record['errD_fake_adv'],
 
-    writer.add_scalars(
-        'Validity', {
-            'D(x)': record['D_x'],
-            'D(G(z))1': record['D_G_z1'],
-            'D(G(z))2': record['D_G_z2']
-        }, iteration // 100
-    )
+        'netG/total_loss': record['errG'],
+        'netG/weighted_adv_loss': criterion_weight['ERRG_ADV'] * record['errG_adv'],
+        'netG/weighted_clf_loss': criterion_weight['ERRG_CLF'] * record['errG_clf'],
+        'netG/weighted_qual_loss': criterion_weight['ERRG_QUAL'] * record['errG_qual'],
+        'netG/weighted_cont_loss': criterion_weight['ERRG_CONT'] * record['errG_cont'],
+        'netG/adv_loss': record['errG_adv'],
 
-    writer.add_images(
-        'Real Distorted Image',
-        record['real_imgs'],
-        iteration // 100,
-        dataformats='NHWC'
-    )
-    writer.add_images(
-        'Fake Distorted Image',
-        record['fake_imgs'],
-        iteration // 100,
-        dataformats='NHWC'
-    )
-    writer.flush()
+        'Validity/D(x)': record['D_x'],
+        'Validity/D(G(z))1': record['D_G_z1'],
+        'Validity/D(G(z))2': record['D_G_z2'],
+
+        'Image/real_imgs': real_imgs,
+        'Image/fake_imgs': fake_imgs
+    })
 
 
-def write_epoch_log(writer: SummaryWriter, results, epoch):
-    writer.add_scalars('Loss_classification',
-                       {'train_real': results['train']['real_clf'],
-                        'train_fake': results['train']['fake_clf'],
-                        'val_real': results['val']['real_clf']},
-                       epoch)
-    writer.add_scalars('Loss_quality',
-                       {'train_real': results['train']['real_qual'],
-                        'train_fake': results['train']['fake_qual'],
-                        'val_real': results['val']['real_qual']},
-                       epoch)
-    writer.add_scalars('PLCC', {x: results[x]['PLCC'] for x in ['train', 'val']}, epoch)
-    writer.add_scalars('SRCC', {x: results[x]['SRCC'] for x in ['train', 'val']}, epoch)
-    writer.add_scalars('KRCC', {x: results[x]['KRCC'] for x in ['train', 'val']}, epoch)
-    writer.add_scalar('Loss_content',
-                      results['train']['cont'],
-                      epoch)
-    writer.add_scalar('FID', results['train']['FID'], epoch)
-    writer.flush()
+def write_epoch_log(results, epoch, phase=0):
+    if phase == 1:
+        wandb.log({
+            'epoch': epoch,
+            # record classification loss
+            'train/real_classification_loss': results['train']['real_clf'],
+            'train/fake_classification_loss': results['train']['fake_clf'],
+            'val/real_classification_loss': results['val']['real_clf'],
+            'val/fake_classification_loss': results['val']['fake_clf'],
+            # record quality loss
+            'train/real_quality_loss': results['train']['real_qual'],
+            'train/fake_quality_loss': results['train']['fake_qual'],
+            'val/real_quality_loss': results['val']['real_qual'],
+            'val/fake_quality_loss': results['val']['fake_qual'],
+            # record correlation coefficient
+            'train/PLCC': results['train']['PLCC'],
+            'val/PLCC': results['val']['PLCC'],
+            'train/SRCC': results['train']['SRCC'],
+            'val/SRCC': results['val']['SRCC'],
+            'train/KRCC': results['train']['KRCC'],
+            'val/KRCC': results['val']['KRCC'],
+            # record generated image quality
+            'train/content_loss': results['train']['cont'],
+            'train/FID': results['train']['FID']
+        })
+    elif phase == 2:
+        wandb.log({
+            'epoch': epoch,
+            # record quality loss
+            'train/real_quality_loss': results['train']['real_qual'],
+            'train/fake_quality_loss': results['train']['fake_qual'],
+            'val/real_quality_loss': results['val']['real_qual'],
+            'val/fake_quality_loss': results['val']['fake_qual'],
+            # record correlation coefficient
+            'train/PLCC': results['train']['PLCC'],
+            'val/PLCC': results['val']['PLCC'],
+            'train/SRCC': results['train']['SRCC'],
+            'val/SRCC': results['val']['SRCC'],
+            'train/KRCC': results['train']['KRCC'],
+            'val/KRCC': results['val']['KRCC'],
+        })
+    else:
+        wandb.log({
+            'epoch': epoch,
+            # record quality loss
+            'train/real_quality_loss': results['train']['real_qual'],
+            'val/real_quality_loss': results['val']['real_qual'],
+            # record correlation coefficient
+            'train/PLCC': results['train']['PLCC'],
+            'val/PLCC': results['val']['PLCC'],
+            'train/SRCC': results['train']['SRCC'],
+            'val/SRCC': results['val']['SRCC'],
+            'train/KRCC': results['train']['KRCC'],
+            'val/KRCC': results['val']['KRCC'],
+        })
