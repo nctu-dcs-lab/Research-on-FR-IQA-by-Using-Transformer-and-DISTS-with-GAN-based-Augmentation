@@ -418,8 +418,8 @@ class TrainerPhase2(Trainer):
         }
 
         result = {
-            'real_loss': 0,
-            'fake_loss': 0
+            'real_qual': 0,
+            'fake_qual': 0
         }
 
         self.netD.train()
@@ -466,8 +466,8 @@ class TrainerPhase2(Trainer):
                 total_loss.backward()
                 self.optimizerD.step()
 
-                result['real_loss'] += real_loss.item() * bs
-                result['fake_loss'] += fake_loss.item() * bs
+                result['real_qual'] += real_loss.item() * bs
+                result['fake_qual'] += fake_loss.item() * bs
 
                 # Show training message
                 tepoch.set_postfix({
@@ -476,8 +476,8 @@ class TrainerPhase2(Trainer):
                     'Total Loss': total_loss.item()
                 })
 
-        result['real_loss'] /= self.datasets_size['train']
-        result['fake_loss'] /= self.datasets_size['train']
+        result['real_qual'] /= self.datasets_size['train']
+        result['fake_qual'] /= self.datasets_size['train']
 
         """
         Calculate correlation coefficient
@@ -497,9 +497,8 @@ class TrainerPhase2(Trainer):
         }
 
         result = {
-            'real_loss': 0,
-            'fake_loss': 0,
-            'total_loss': 0
+            'real_qual': 0,
+            'fake_qual': 0,
         }
 
         self.netD.eval()
@@ -544,8 +543,8 @@ class TrainerPhase2(Trainer):
 
                     fake_loss = self.mse_loss(pred_scores_avg, scores)
 
-                result['real_loss'] += real_loss.item() * bs
-                result['fake_loss'] += fake_loss.item() * bs
+                result['real_qual'] += real_loss.item() * bs
+                result['fake_qual'] += fake_loss.item() * bs
 
                 # Show training message
                 tepoch.set_postfix({
@@ -553,8 +552,8 @@ class TrainerPhase2(Trainer):
                     'Fake Loss': fake_loss.item()
                 })
 
-        result['real_loss'] /= self.datasets_size['val']
-        result['fake_loss'] /= self.datasets_size['val']
+        result['real_qual'] /= self.datasets_size['val']
+        result['fake_qual'] /= self.datasets_size['val']
 
         """
         Calculate correlation coefficient
@@ -594,7 +593,7 @@ class TrainerPhase3(Trainer):
         }
 
         result = {
-            'loss': 0
+            'real_qual': 0
         }
 
         self.netD.train()
@@ -624,14 +623,14 @@ class TrainerPhase3(Trainer):
                 loss.backward()
                 self.optimizerD.step()
 
-                result['loss'] += loss.item() * bs
+                result['real_qual'] += loss.item() * bs
 
                 # Show training message
                 tepoch.set_postfix({
                     'Loss': loss.item()
                 })
 
-        result['loss'] /= self.datasets_size['train']
+        result['real_qual'] /= self.datasets_size['train']
 
         """
         Calculate correlation coefficient
@@ -651,7 +650,7 @@ class TrainerPhase3(Trainer):
         }
 
         result = {
-            'loss': 0
+            'real_qual': 0
         }
 
         self.netD.eval()
@@ -678,14 +677,14 @@ class TrainerPhase3(Trainer):
                     record['gt_scores'].append(origin_scores)
                     record['pred_scores'].append(pred_scores_avg.cpu().detach())
 
-                result['loss'] += loss.item() * bs
+                result['real_qual'] += loss.item() * bs
 
                 # Show training message
                 tepoch.set_postfix({
                     'Loss': loss.item()
                 })
 
-        result['loss'] /= self.datasets_size['val']
+        result['real_qual'] /= self.datasets_size['val']
 
         """
         Calculate correlation coefficient
