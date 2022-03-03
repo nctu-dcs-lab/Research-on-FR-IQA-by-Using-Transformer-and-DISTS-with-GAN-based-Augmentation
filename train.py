@@ -1,6 +1,5 @@
 import argparse
 import os
-import shutil
 
 from src.config.config import get_cfg_defaults
 from src.tool.trainer import TrainerPhase1, TrainerPhase2, TrainerPhase3
@@ -9,9 +8,6 @@ from src.tool.trainer import TrainerPhase1, TrainerPhase2, TrainerPhase3
 def main(cfg):
     if cfg.TRAIN.WEIGHT_DIR and not os.path.isdir(cfg.TRAIN.WEIGHT_DIR):
         os.makedirs(cfg.TRAIN.WEIGHT_DIR)
-
-    if cfg.TRAIN.LOG_DIR and os.path.isdir(cfg.TRAIN.LOG_DIR):
-        shutil.rmtree(cfg.TRAIN.LOG_DIR)
 
     if cfg.TRAIN.PHASE == 1:
         trainer = TrainerPhase1(cfg)
