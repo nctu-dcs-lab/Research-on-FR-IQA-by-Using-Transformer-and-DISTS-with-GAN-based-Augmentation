@@ -1,0 +1,56 @@
+program: train_sweep.py
+method: bayes
+metric:
+  goal: minimize
+  name: val/real_quality_loss
+parameters:
+  batch_size:
+    values:
+      - 8
+      - 16
+      - 32
+  img_size:
+    values:
+      - 192
+      - 256
+  netD_learning_rate:
+    max: 0.0004
+    min: 0.000005
+  fixed_backbone:
+    values:
+      - "true"
+      - "false"
+  transformer_num_layers:
+    max: 8
+    min: 1
+    distribution: int_uniform
+  transformer_dim:
+    values:
+      - 64
+      - 128
+      - 256
+      - 512
+      - 1024
+      - 2048
+  transformer_mha_num_heads:
+    values:
+      - 1
+      - 2
+      - 4
+      - 8
+      - 16
+      - 32
+  transformer_head_dim:
+    max: 1024
+    min: 32
+    distribution: int_uniform
+  transformer_feat_dim:
+    max: 2048
+    min: 32
+    distribution: int_uniform
+command:
+  - ${env}
+  - ${interpreter}
+  - ${program}
+  - '--config'
+  - 'src/config/experiments/sweep_high_IQT.yaml'
