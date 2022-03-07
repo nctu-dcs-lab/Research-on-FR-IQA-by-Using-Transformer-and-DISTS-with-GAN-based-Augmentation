@@ -3,7 +3,6 @@ import os
 
 import numpy as np
 import torch
-import wandb
 from pytorch_fid.fid_score import calculate_frechet_distance
 from pytorch_fid.inception import InceptionV3
 from torch import optim, nn
@@ -56,8 +55,6 @@ class Trainer:
 
         if cfg.TRAIN.START_EPOCH != 0:
             self.schedulerD.step(cfg.TRAIN.START_EPOCH)
-
-        wandb.init(project='Thesis-Project', config=cfg)
 
         self.start_epoch = cfg.TRAIN.START_EPOCH
         self.num_epoch = cfg.TRAIN.NUM_EPOCHS
