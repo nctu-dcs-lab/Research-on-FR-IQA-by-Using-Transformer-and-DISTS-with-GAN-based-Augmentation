@@ -11,13 +11,13 @@ from src.tool.evaluate import evaluate
 def main(args, cfg):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    dataloaders, datasets_size = create_dataloaders(cfg)
+    dataloaders, datasets_size = create_dataloaders(cfg, phase='eval')
 
     netG = MultiTask(cfg).to(device)
     netG.load_state_dict(torch.load(args.netD_path))
 
     results = {}
-    for mode in ['val', 'test']:
+    for mode in ['train', 'val', 'test']:
         results[mode] = evaluate(dataloaders[mode], netG, device)
         print(f'{mode}')
         print(f'PLCC: {results[mode]["PLCC"]}')
