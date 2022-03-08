@@ -34,9 +34,9 @@ def main(args, cfg):
 
     records = {}
 
-    for mode in ['val', 'test']:
+    for dataset_type in ['train', 'val', 'test']:
         dfs = []
-        for filename in (root_dir / label_dir[mode]).glob('*.txt'):
+        for filename in (root_dir / label_dir[dataset_type]).glob('*.txt'):
             df = pd.read_csv(filename, index_col=None, header=None, names=['dist_img', 'score'])
             dfs.append(df)
 
@@ -72,7 +72,7 @@ def main(args, cfg):
 
         pred_scores_arr = torch.cat(pred_scores_list).numpy()
 
-        records[mode] = pred_scores_arr
+        records[dataset_type] = pred_scores_arr
 
     with open(args.output_file + '.pickle', 'wb') as handle:
         pickle.dump(records, handle)
