@@ -5,6 +5,7 @@ import numpy as np
 from src.tool.evaluate import calculate_correlation_coefficient
 
 pred_scores = []
+
 pred_scores_path = [
     'scores_record/1.1.7 pred_scores.pickle',
     'scores_record/1.3.2 pred_scores.pickle',
@@ -20,11 +21,12 @@ for path in pred_scores_path:
 pred_scores = tuple(pred_scores)
 
 avg_pred_scores = {
+    'train': np.zeros(pred_scores[0]['train'].size),
     'val': np.zeros(pred_scores[0]['val'].size),
     'test': np.zeros(pred_scores[0]['test'].size)
 }
 
-for mode in ['val', 'test']:
+for mode in ['train', 'val', 'test']:
     for scores in pred_scores:
         avg_pred_scores[mode] += scores[mode]
     avg_pred_scores[mode] /= len(pred_scores)
