@@ -24,20 +24,19 @@ for path in pred_scores_path:
 
 pred_scores = tuple(pred_scores)
 
-avg_pred_scores = {
-    'train': np.zeros(pred_scores[0]['train'].size),
-    'val': np.zeros(pred_scores[0]['val'].size),
-    'test': np.zeros(pred_scores[0]['test'].size)
+stack_pred_scores = {
+    'train': np.stack([pred_scores[idx]['train'] for idx in range(len(pred_scores))]),
+    'val': np.stack([pred_scores[idx]['val'] for idx in range(len(pred_scores))]),
+    'test': np.stack([pred_scores[idx]['test'] for idx in range(len(pred_scores))])
 }
 
 for mode in ['train', 'val', 'test']:
-    for scores in pred_scores:
-        avg_pred_scores[mode] += scores[mode]
-    avg_pred_scores[mode] /= len(pred_scores)
 
     plcc, srcc, krcc = calculate_correlation_coefficient(
         gt_scores[mode],
-        avg_pred_scores[mode]
+        np.average(stack_pred_scores[mode], axis=0)
     )
 
     print(f'{mode} PLCC: {plcc: .4f}, SRCC: {srcc: .4f}, KRCC: {krcc: .4f}')
+
+
