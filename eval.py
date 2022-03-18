@@ -15,14 +15,15 @@ def main(args, cfg):
     dataloaders, datasets_size = create_dataloaders(
         Path(cfg.DATASETS.ROOT_DIR),
         batch_size=cfg.DATASETS.BATCH_SIZE,
-        num_workers=cfg.DATASETS.NUM_WORKERS
+        num_workers=cfg.DATASETS.NUM_WORKERS,
+        phase='eval'
     )
 
     netG = MultiTask(cfg).to(device)
     netG.load_state_dict(torch.load(args.netD_path))
 
     results = {}
-    for mode in ['val', 'test']:
+    for mode in ['train', 'val', 'test']:
         results[mode] = evaluate(dataloaders[mode], netG, device)
         print(f'{mode}')
         print(f'PLCC: {results[mode]["PLCC"]}')
