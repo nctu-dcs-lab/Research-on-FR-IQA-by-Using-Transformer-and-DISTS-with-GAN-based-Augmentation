@@ -1,12 +1,69 @@
+import os
 import random
 
 import numpy as np
 import pandas as pd
+import scipy.io as sio
 import torch
 import torchvision.transforms.functional as TF
 from PIL import Image
 from torch.utils.data import Dataset, DataLoader
 from torchvision.transforms import transforms
+
+
+class LIVE(Dataset):
+    def __init__(self, root_dir, img_size=(192, 192)):
+        num_type_map = {
+            'jp2k': 227,
+            'jpeg': 233,
+            'wn': 174,
+            'gblur': 174,
+            'fastfading': 174
+        }
+
+        dist_path_list = []
+        for dist_type, num_dist in num_type_map.items():
+            for i in range(1, num_dist + 1):
+                dist_path_list.append(os.path.join(dist_type, f'img{i}.bmp'))
+
+        refnames_all = sio.loadmat(os.path.join(root_dir, 'refnames_all.mat'))['refnames_all']
+        dmos = sio.loadmat(os.path.join(root_dir, 'dmos.mat'))['dmos']
+
+        df = pd.DataFrame({'ref_img': refnames_all[0], 'dist_img': dist_path_list, 'dmos': dmos[0]})
+        df['ref_img'] = df['ref_img'].apply(lambda x: os.path.join(root_dir, f'refimgs/{x[0]}'))
+        df['dist_img'] = df['dist_img'].apply(lambda x: os.path.join(root_dir, f'{x}'))
+
+        self.df = df
+        self.img_size = img_size
+
+    def __len__(self):
+        return len(self.df)
+
+    def __getitem__(self, idx):
+        if torch.is_tensor(idx):
+            idx = idx.tolist()
+
+        ref_img = Image.open(self.df['ref_img'].iloc[idx]).convert('RGB')
+        dist_img = Image.open(self.df['dist_img'].iloc[idx]).convert('RGB')
+
+        ref_img, dist_img = self.transform(ref_img, dist_img)
+
+        return ref_img, dist_img, self.df['dmos'].iloc[idx]
+
+    def transform(self, ref_img, dist_img):
+        ref_imgs = TF.five_crop(ref_img, self.img_size)
+        dist_imgs = TF.five_crop(dist_img, self.img_size)
+
+        ref_imgs = torch.stack([TF.normalize(TF.to_tensor(crop),
+                                             [0.485, 0.456, 0.406],
+                                             [0.229, 0.224, 0.225])
+                                for crop in ref_imgs])
+        dist_imgs = torch.stack([TF.normalize(TF.to_tensor(crop),
+                                              [0.485, 0.456, 0.406],
+                                              [0.229, 0.224, 0.225])
+                                 for crop in dist_imgs])
+
+        return ref_imgs, dist_imgs
 
 
 class PIPAL(Dataset):
