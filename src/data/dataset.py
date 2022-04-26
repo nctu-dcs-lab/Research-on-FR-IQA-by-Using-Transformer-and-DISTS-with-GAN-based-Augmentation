@@ -66,6 +66,46 @@ class LIVE(Dataset):
         return ref_imgs, dist_imgs
 
 
+class TID2013(Dataset):
+    def __init__(self, root_dir, img_size=(192, 192)):
+        df = pd.read_csv(os.path.join(root_dir, 'mos.csv'))
+
+        df['ref_img'] = df['ref_img'].apply(lambda x: os.path.join(root_dir, 'reference_images', f'{x}'))
+        df['dist_img'] = df['dist_img'].apply(lambda x: os.path.join(root_dir, 'distorted_images', f'{x}'))
+
+        self.df = df
+        self.img_size = img_size
+
+    def __len__(self):
+        return len(self.df)
+
+    def __getitem__(self, idx):
+        if torch.is_tensor(idx):
+            idx = idx.tolist()
+
+        ref_img = Image.open(self.df['ref_img'].iloc[idx]).convert('RGB')
+        dist_img = Image.open(self.df['dist_img'].iloc[idx]).convert('RGB')
+
+        ref_img, dist_img = self.transform(ref_img, dist_img)
+
+        return ref_img, dist_img, self.df['mos'].iloc[idx]
+
+    def transform(self, ref_img, dist_img):
+        ref_imgs = TF.five_crop(ref_img, self.img_size)
+        dist_imgs = TF.five_crop(dist_img, self.img_size)
+
+        ref_imgs = torch.stack([TF.normalize(TF.to_tensor(crop),
+                                             [0.485, 0.456, 0.406],
+                                             [0.229, 0.224, 0.225])
+                                for crop in ref_imgs])
+        dist_imgs = torch.stack([TF.normalize(TF.to_tensor(crop),
+                                              [0.485, 0.456, 0.406],
+                                              [0.229, 0.224, 0.225])
+                                 for crop in dist_imgs])
+
+        return ref_imgs, dist_imgs
+
+
 class PIPAL(Dataset):
     def __init__(self, root_dir, dataset_type='train', mode='train', img_size=(192, 192)):
         dist_type = {
