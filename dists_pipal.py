@@ -50,13 +50,13 @@ class PIPAL(Dataset):
         return ref_img, dist_img, self.origin_scores[idx]
 
     def transform(self, ref_img, dist_img):
-        ref_imgs = TF.five_crop(ref_img, self.img_size)
-        dist_imgs = TF.five_crop(dist_img, self.img_size)
+        ref_img = TF.resize(ref_img, self.img_size)
+        dist_img = TF.resize(dist_img, self.img_size)
 
-        ref_imgs = torch.stack([TF.to_tensor(crop) for crop in ref_imgs])
-        dist_imgs = torch.stack([TF.to_tensor(crop) for crop in dist_imgs])
+        ref_img = TF.to_tensor(ref_img)
+        dist_img = TF.to_tensor(dist_img)
 
-        return ref_imgs, dist_imgs
+        return ref_img, dist_img
 
 
 datasets = {dataset_type: PIPAL(root_dir=root_dir, dataset_type=dataset_type)
@@ -65,26 +65,28 @@ datasets_size = {x: len(datasets[x]) for x in ['train', 'val', 'test']}
 
 # DataLoader
 dataloaders = {dataset_type: DataLoader(datasets[dataset_type],
-                                        batch_size=1,
+                                        batch_size=16,
                                         shuffle=False,
                                         num_workers=6) for dataset_type in ['train', 'val', 'test']}
 
 record_pred_scores = []
 record_gt_scores = []
 
-for ref_imgs, dist_imgs, scores in tqdm(dataloaders['train']):
-    ref_imgs = ref_imgs[0].to(device)
-    dist_imgs = dist_imgs[0].to(device)
+for dataset_type in ('train', 'val', 'test'):
+    for ref_imgs, dist_imgs, scores in tqdm(dataloaders[dataset_type]):
+        ref_imgs = ref_imgs.to(device)
+        dist_imgs = dist_imgs.to(device)
 
-    pred_scores = D(ref_imgs, dist_imgs)
-    avg_pred_scores = torch.mean(pred_scores)
+        pred_scores = D(ref_imgs, dist_imgs)
+        record_pred_scores.append(pred_scores.cpu().detach())
+        record_gt_scores.append(scores)
 
-    record_pred_scores.append(avg_pred_scores.cpu().detach().view(1))
-    record_gt_scores.append(scores)
+    plcc, srcc, krcc = calculate_correlation_coefficient(
+        torch.cat(record_gt_scores).numpy(),
+        torch.cat(record_pred_scores).numpy()
+    )
 
-plcc, srcc, krcc = calculate_correlation_coefficient(
-    torch.cat(record_gt_scores).numpy(),
-    torch.cat(record_pred_scores).numpy()
-)
-
-print(plcc, srcc, krcc)
+    print(f'PIPAL {dataset_type} Dataset')
+    print(f'PLCC: {plcc}')
+    print(f'SRCC: {srcc}')
+    print(f'KRCC: {krcc}')
