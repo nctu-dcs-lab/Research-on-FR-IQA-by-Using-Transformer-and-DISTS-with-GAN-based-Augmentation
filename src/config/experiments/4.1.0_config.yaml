@@ -5,18 +5,18 @@ DATASETS:
 #  ROOT_DIR: ../data/PIPAL(processed)
 MODEL:
   BACKBONE:
-    FEAT_LEVEL: high
-    FIXED: True
-  #    NAME: InceptionResNetV2
-  #  EVALUATOR: IQT
+    FEAT_LEVEL: mixed
+    FIXED: False
+    #    NAME: InceptionResNetV2
+  EVALUATOR: DISTS
   #  INCEPTION_DIMS: 2048
   #  LATENT_DIM: 100
-  TRANSFORMER:
-    #    FEAT_DIM: 1024
-    HEAD_DIM: 512
-    #    MHA_NUM_HEADS: 4
-    TRANSFORMER_DIM: 512
-    TRANSFORMER_LAYERS: 2
+#  TRANSFORMER:
+#    FEAT_DIM: 1024
+#    HEAD_DIM: 512
+#    MHA_NUM_HEADS: 4
+#    TRANSFORMER_DIM: 256
+#    TRANSFORMER_LAYERS: 2
 TRAIN:
   #  CRITERION_WEIGHT:
   #    ERRD_FAKE_ADV: 1.0
@@ -29,13 +29,13 @@ TRAIN:
   #    ERRG_CONT: 1.0
   #    ERRG_QUAL: 1.0
   LEARNING_RATE:
-    NET_D: 2e-04
+    NET_D: 1e-04
   #    NET_G: 5e-05
-  LOG_DIR: experiments/1.4.4/logs
-  NUM_EPOCHS: 46
+  LOG_DIR: experiments/4.1.0/logs
+  NUM_EPOCHS: 127
   PHASE: 0
   RESUME:
-    NET_D: experiments/1.4.4/models/netD_epoch154.pth
+    NET_D: experiments/4.1.0/models/netD_epoch73.pth
   #    NET_G:
-  START_EPOCH: 154
-  WEIGHT_DIR: experiments/1.4.4/models
+  START_EPOCH: 73
+  WEIGHT_DIR: experiments/4.1.0/models

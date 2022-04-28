@@ -47,7 +47,7 @@ class Trainer:
         self.netD = MultiTask(cfg).to(self.device)
 
         if cfg.TRAIN.RESUME.NET_D:
-            self.netD.load_state_dict(torch.load(cfg.TRAIN.RESUME.NET_D))
+            self.netD.load_state_dict(torch.load(cfg.TRAIN.RESUME.NET_D, map_location='cuda:0'))
 
         self.mse_loss = nn.MSELoss()
 
@@ -377,7 +377,7 @@ class TrainerPhase2(Trainer):
 
         self.latent_dim = cfg.MODEL.LATENT_DIM
 
-        self.netG = Generator().to(self.device)
+        self.netG = Generator(img_shape=(3, cfg.DATASETS.IMG_SIZE[0], cfg.DATASETS.IMG_SIZE[1])).to(self.device)
         if cfg.TRAIN.RESUME.NET_G:
             self.netG.load_state_dict(torch.load(cfg.TRAIN.RESUME.NET_G))
         self.netG.eval()

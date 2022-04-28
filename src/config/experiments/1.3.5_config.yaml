@@ -32,10 +32,10 @@ TRAIN:
     NET_D: 1e-04
   #    NET_G: 5e-05
   LOG_DIR: experiments/1.3.5/logs
-  NUM_EPOCHS: 200
+  NUM_EPOCHS: 101
   PHASE: 0
-  #  RESUME:
-  #    NET_D:
+  RESUME:
+    NET_D: experiments/1.3.5/models/netD_epoch99.pth
   #    NET_G:
-  #  START_EPOCH: 0
+  START_EPOCH: 99
   WEIGHT_DIR: experiments/1.3.5/models

@@ -15,7 +15,7 @@ MODEL:
     #    FEAT_DIM: 1024
     HEAD_DIM: 512
     #    MHA_NUM_HEADS: 4
-    TRANSFORMER_DIM: 512
+    TRANSFORMER_DIM: 1024
     TRANSFORMER_LAYERS: 2
 TRAIN:
   #  CRITERION_WEIGHT:
@@ -31,11 +31,11 @@ TRAIN:
   LEARNING_RATE:
     NET_D: 2e-04
   #    NET_G: 5e-05
-  LOG_DIR: experiments/1.4.4/logs
-  NUM_EPOCHS: 46
+  LOG_DIR: experiments/1.4.6/logs
+  NUM_EPOCHS: 200
   PHASE: 0
-  RESUME:
-    NET_D: experiments/1.4.4/models/netD_epoch154.pth
+  #  RESUME:
+  #    NET_D:
   #    NET_G:
-  START_EPOCH: 154
-  WEIGHT_DIR: experiments/1.4.4/models
+  #  START_EPOCH: 0
+  WEIGHT_DIR: experiments/1.4.6/models

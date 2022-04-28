@@ -67,8 +67,48 @@ class LIVE(Dataset):
         return ref_imgs, dist_imgs
 
 
+class TID2013(Dataset):
+    def __init__(self, root_dir, img_size=(192, 192)):
+        df = pd.read_csv(os.path.join(root_dir, 'mos.csv'))
+
+        df['ref_img'] = df['ref_img'].apply(lambda x: os.path.join(root_dir, 'reference_images', f'{x}'))
+        df['dist_img'] = df['dist_img'].apply(lambda x: os.path.join(root_dir, 'distorted_images', f'{x}'))
+
+        self.df = df
+        self.img_size = img_size
+
+    def __len__(self):
+        return len(self.df)
+
+    def __getitem__(self, idx):
+        if torch.is_tensor(idx):
+            idx = idx.tolist()
+
+        ref_img = Image.open(self.df['ref_img'].iloc[idx]).convert('RGB')
+        dist_img = Image.open(self.df['dist_img'].iloc[idx]).convert('RGB')
+
+        ref_img, dist_img = self.transform(ref_img, dist_img)
+
+        return ref_img, dist_img, self.df['mos'].iloc[idx]
+
+    def transform(self, ref_img, dist_img):
+        ref_imgs = TF.five_crop(ref_img, self.img_size)
+        dist_imgs = TF.five_crop(dist_img, self.img_size)
+
+        ref_imgs = torch.stack([TF.normalize(TF.to_tensor(crop),
+                                             [0.485, 0.456, 0.406],
+                                             [0.229, 0.224, 0.225])
+                                for crop in ref_imgs])
+        dist_imgs = torch.stack([TF.normalize(TF.to_tensor(crop),
+                                              [0.485, 0.456, 0.406],
+                                              [0.229, 0.224, 0.225])
+                                 for crop in dist_imgs])
+
+        return ref_imgs, dist_imgs
+
+
 class PIPAL(Dataset):
-    def __init__(self, root_dir, mode='train', img_size=(192, 192)):
+    def __init__(self, root_dir, dataset_type='train', mode='train', img_size=(192, 192)):
         dist_type = {
             '00': 0,
             '01': 12,
@@ -82,7 +122,7 @@ class PIPAL(Dataset):
         label_dir = {'train': 'Train_Label', 'val': 'Val_Label', 'test': 'Test_Label'}
 
         dfs = []
-        for filename in (root_dir / label_dir[mode]).glob('*.txt'):
+        for filename in (root_dir / label_dir[dataset_type]).glob('*.txt'):
             df = pd.read_csv(filename, index_col=None, header=None, names=['dist_img', 'score'])
             dfs.append(df)
 
@@ -118,6 +158,7 @@ class PIPAL(Dataset):
         return ref_img, dist_img, self.scores[idx], self.categories[idx], self.origin_scores[idx]
 
     def transform(self, ref_img, dist_img):
+        # train mode
         if self.mode == 'train':
             # Random crop
             i, j, h, w = transforms.RandomCrop.get_params(ref_img, output_size=self.img_size)
@@ -141,6 +182,7 @@ class PIPAL(Dataset):
 
             return ref_img, dist_img
 
+        # evaluate mode
         else:
             ref_imgs = TF.five_crop(ref_img, self.img_size)
             dist_imgs = TF.five_crop(dist_img, self.img_size)
@@ -157,29 +199,37 @@ class PIPAL(Dataset):
             return ref_imgs, dist_imgs
 
 
-def create_dataloaders(cfg):
+def create_dataloaders(cfg, phase='train'):
     # Dataset
-    datasets = {
-        x: PIPAL(root_dir=Path(cfg.DATASETS.ROOT_DIR),
-                 mode=x,
-                 img_size=cfg.DATASETS.IMG_SIZE)
-        for x in ['train', 'val', 'test']
-    }
+    datasets = {}
+
+    for dataset_type in ['train', 'val', 'test']:
+        # training dataset for training phase
+        if dataset_type == 'train' and phase == 'train':
+            datasets[dataset_type] = PIPAL(root_dir=Path(cfg.DATASETS.ROOT_DIR),
+                                           dataset_type=dataset_type,
+                                           mode='train',
+                                           img_size=cfg.DATASETS.IMG_SIZE)
+        else:
+            datasets[dataset_type] = PIPAL(root_dir=Path(cfg.DATASETS.ROOT_DIR),
+                                           dataset_type=dataset_type,
+                                           mode='eval',
+                                           img_size=cfg.DATASETS.IMG_SIZE)
 
     datasets_size = {x: len(datasets[x]) for x in ['train', 'val', 'test']}
 
     # DataLoader
     dataloaders = {}
-    for x in ['train', 'val', 'test']:
-        if x == 'train':
-            dataloaders[x] = DataLoader(datasets[x],
-                                        batch_size=cfg.DATASETS.BATCH_SIZE,
-                                        shuffle=True,
-                                        num_workers=cfg.DATASETS.NUM_WORKERS)
+    for dataset_type in ['train', 'val', 'test']:
+        if dataset_type == 'train' and phase == 'train':
+            dataloaders[dataset_type] = DataLoader(datasets[dataset_type],
+                                                   batch_size=cfg.DATASETS.BATCH_SIZE,
+                                                   shuffle=True,
+                                                   num_workers=cfg.DATASETS.NUM_WORKERS)
         else:
-            dataloaders[x] = DataLoader(datasets[x],
-                                        batch_size=cfg.DATASETS.BATCH_SIZE,
-                                        shuffle=False,
-                                        num_workers=cfg.DATASETS.NUM_WORKERS)
+            dataloaders[dataset_type] = DataLoader(datasets[dataset_type],
+                                                   batch_size=cfg.DATASETS.BATCH_SIZE,
+                                                   shuffle=False,
+                                                   num_workers=cfg.DATASETS.NUM_WORKERS)
 
     return dataloaders, datasets_size

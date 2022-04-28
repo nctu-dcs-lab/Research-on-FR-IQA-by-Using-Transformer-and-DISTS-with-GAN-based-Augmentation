@@ -6,7 +6,7 @@ DATASETS:
 MODEL:
   BACKBONE:
     FEAT_LEVEL: high
-    FIXED: True
+    FIXED: False
   #    NAME: InceptionResNetV2
   #  EVALUATOR: IQT
   #  INCEPTION_DIMS: 2048
@@ -15,7 +15,7 @@ MODEL:
     #    FEAT_DIM: 1024
     HEAD_DIM: 512
     #    MHA_NUM_HEADS: 4
-    TRANSFORMER_DIM: 512
+    TRANSFORMER_DIM: 256
     TRANSFORMER_LAYERS: 2
 TRAIN:
   #  CRITERION_WEIGHT:
@@ -29,13 +29,13 @@ TRAIN:
   #    ERRG_CONT: 1.0
   #    ERRG_QUAL: 1.0
   LEARNING_RATE:
-    NET_D: 2e-04
+    NET_D: 1e-4
   #    NET_G: 5e-05
-  LOG_DIR: experiments/1.4.4/logs
-  NUM_EPOCHS: 46
+  LOG_DIR: experiments/1.5.7/logs
+  NUM_EPOCHS: 200
   PHASE: 0
-  RESUME:
-    NET_D: experiments/1.4.4/models/netD_epoch154.pth
+  #  RESUME:
+  #    NET_D:
   #    NET_G:
-  START_EPOCH: 154
-  WEIGHT_DIR: experiments/1.4.4/models
+  #  START_EPOCH: 0
+  WEIGHT_DIR: experiments/1.5.7/models
