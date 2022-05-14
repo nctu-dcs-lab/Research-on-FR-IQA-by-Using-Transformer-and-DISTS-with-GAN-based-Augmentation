@@ -19,23 +19,20 @@ def img_transform(img):
     return img
 
 
-def transform(ref_img, dist_img_1, dist_img_2, img_size=(192, 192)):
+def transform(ref_img, dist_img_1, img_size=(192, 192)):
     ref_img = TF.center_crop(ref_img, img_size)
     dist_img_1 = TF.center_crop(dist_img_1, img_size)
-    dist_img_2 = TF.center_crop(dist_img_2, img_size)
 
     ref_img = TF.normalize(TF.to_tensor(ref_img), [0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     dist_img_1 = TF.normalize(TF.to_tensor(dist_img_1), [0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-    dist_img_2 = TF.normalize(TF.to_tensor(dist_img_2), [0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 
-    return ref_img, dist_img_1, dist_img_2
+    return ref_img, dist_img_1
 
 
 def main():
     img_num = 1
-    dist_class = 3
-    dist_1 = 20
-    dist_2 = 22
+    dist_class = (0, 2)
+    assign_score = None
     device = torch.device("cpu")
     root_dir = Path('../data/PIPAL(processed)')
     latent_dim = 100
@@ -69,21 +66,20 @@ def main():
     df = df[['dist_img', 'ref_img', 'category', 'score', 'norm_score']].sort_values('dist_img')
 
     ref_img_path = f'../data/PIPAL(processed)/Ref/A{img_num:04d}.bmp'
-    dist_img_path_1 = f'../data/PIPAL(processed)/Dist/A{img_num:04d}_{dist_class:02d}_{dist_1:02d}.bmp'
-    dist_img_path_2 = f'../data/PIPAL(processed)/Dist/A{img_num:04d}_{dist_class:02d}_{dist_2:02d}.bmp'
-    dist_type_1 = float(df[df['dist_img'] == Path(dist_img_path_1)]['category'])
-    dist_type_2 = float(df[df['dist_img'] == Path(dist_img_path_2)]['category'])
-    norm_score_1 = float(df[df['dist_img'] == Path(dist_img_path_1)]['norm_score'])
-    norm_score_2 = float(df[df['dist_img'] == Path(dist_img_path_2)]['norm_score'])
+    dist_img_path = f'../data/PIPAL(processed)/Dist/A{img_num:04d}_{dist_class[0]:02d}_{dist_class[1]:02d}.bmp'
+    dist_cat = float(df[df['dist_img'] == Path(dist_img_path)]['category'])
+    if assign_score:
+        norm_score = assign_score
+    else:
+        norm_score = float(df[df['dist_img'] == Path(dist_img_path)]['norm_score'])
 
-    print(1 - norm_score_1)
-    print(1 - norm_score_2)
+    print(f'Distorted Image Score: {1 - float(df[df["dist_img"] == Path(dist_img_path)]["norm_score"])}')
+    print(f'Generated Image Score: {1 - norm_score}')
 
     ref_img = Image.open(ref_img_path).convert('RGB')
-    dist_img_1 = Image.open(dist_img_path_1).convert('RGB')
-    dist_img_2 = Image.open(dist_img_path_2).convert('RGB')
+    dist_img = Image.open(dist_img_path).convert('RGB')
 
-    ref_img, dist_img_1, dist_img_2 = transform(ref_img, dist_img_1, dist_img_2)
+    ref_img, dist_img = transform(ref_img, dist_img)
 
     ref_img = ref_img.to(device)
 
@@ -93,30 +89,20 @@ def main():
     with torch.no_grad():
         # Generate batch of latent vectors
         noise = torch.randn(1, latent_dim, device=device)
-        fake_img_1 = netG(ref_img.view(-1, c, h, w),
-                          noise,
-                          torch.Tensor([[0.5]]),
-                          torch.Tensor([[dist_type_1]]))
+        fake_img = netG(ref_img.view(-1, c, h, w),
+                        noise,
+                        torch.Tensor([[norm_score]]),
+                        torch.Tensor([[dist_cat]]))
 
-        fake_img_2 = netG(ref_img.view(-1, c, h, w),
-                          noise,
-                          torch.Tensor([[0.5]]),
-                          torch.Tensor([[dist_type_2]]))
-
-        fake_img_1 = img_transform(fake_img_1[0].cpu().detach())
-        fake_img_2 = img_transform(fake_img_2[0].cpu().detach())
+        fake_img = img_transform(fake_img[0].cpu().detach())
 
     ref_img = Image.fromarray(np.uint8(img_transform(ref_img) * 255), mode='RGB')
-    dist_img_1 = Image.fromarray(np.uint8(img_transform(dist_img_1) * 255), mode='RGB')
-    dist_img_2 = Image.fromarray(np.uint8(img_transform(dist_img_2) * 255), mode='RGB')
-    fake_img_1 = Image.fromarray(np.uint8(fake_img_1 * 255), mode='RGB')
-    fake_img_2 = Image.fromarray(np.uint8(fake_img_2 * 255), mode='RGB')
+    dist_img = Image.fromarray(np.uint8(img_transform(dist_img) * 255), mode='RGB')
+    fake_img = Image.fromarray(np.uint8(fake_img * 255), mode='RGB')
 
     ref_img.save('output_img/ref_img.bmp')
-    dist_img_1.save('output_img/dist_img_1.bmp')
-    dist_img_2.save('output_img/dist_img_2.bmp')
-    fake_img_1.save('output_img/fake_img_1.bmp')
-    fake_img_2.save('output_img/fake_img_2.bmp')
+    dist_img.save('output_img/dist_img.bmp')
+    fake_img.save('output_img/fake_img.bmp')
 
 
 if __name__ == '__main__':
