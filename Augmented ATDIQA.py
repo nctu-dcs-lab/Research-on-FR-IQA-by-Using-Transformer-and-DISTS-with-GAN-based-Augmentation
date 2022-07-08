@@ -20,16 +20,16 @@ def loss_function(weights):
 
 pred_scores = []
 pred_scores_path = [
-    'scores_record/1.1.7 pred_scores.pickle',
-    'scores_record/1.3.2 pred_scores.pickle',
-    'scores_record/1.5.1 pred_scores.pickle',
-    'scores_record/1.7.4 pred_scores.pickle',
-    'scores_record/2.2.3.3 pred_scores.pickle',
-    'scores_record/4.0.0 pred_scores.pickle',
-    'scores_record/5.2.1 pred_scores.pickle',
+    'scores_record/PIPAL/IQT-L_pred_scores.pickle',
+    'scores_record/PIPAL/IQT-M_pred_scores.pickle',
+    'scores_record/PIPAL/IQT-H_pred_scores.pickle',
+    'scores_record/PIPAL/IQT-Mixed_pred_scores.pickle',
+    'scores_record/PIPAL/Augmented_IQT-Mixed_pred_scores.pickle',
+    'scores_record/PIPAL/DISTS-Tune_pred_scores.pickle',
+    'scores_record/PIPAL/Augmented_DISTS-Tune_pred_scores.pickle',
 ]
 
-with open('scores_record/gt_scores.pickle', 'rb') as handle:
+with open('scores_record/PIPAL/gt_scores.pickle', 'rb') as handle:
     gt_scores = pickle.load(handle)
 
 for path in pred_scores_path:
@@ -76,16 +76,16 @@ for mode in ['train', 'val', 'test']:
 # Evaluate LIVE
 pred_scores = []
 pred_scores_path = [
-    'LIVE scores_record/1.1.7 pred_scores.pickle',
-    'LIVE scores_record/1.3.2 pred_scores.pickle',
-    'LIVE scores_record/1.5.1 pred_scores.pickle',
-    'LIVE scores_record/1.7.4 pred_scores.pickle',
-    'LIVE scores_record/2.2.3.3 pred_scores.pickle',
-    'LIVE scores_record/4.0.0 pred_scores.pickle',
-    'LIVE scores_record/5.2.1 pred_scores.pickle',
+    'scores_record/LIVE/IQT-L_pred_scores.pickle',
+    'scores_record/LIVE/IQT-M_pred_scores.pickle',
+    'scores_record/LIVE/IQT-H_pred_scores.pickle',
+    'scores_record/LIVE/IQT-Mixed_pred_scores.pickle',
+    'scores_record/LIVE/Augmented_IQT-Mixed_pred_scores.pickle',
+    'scores_record/LIVE/DISTS-Tune_pred_scores.pickle',
+    'scores_record/LIVE/Augmented_DISTS-Tune_pred_scores.pickle',
 ]
 
-with open('LIVE scores_record/gt_scores.pickle', 'rb') as handle:
+with open('scores_record/LIVE/gt_scores.pickle', 'rb') as handle:
     gt_scores = pickle.load(handle)
 
 for path in pred_scores_path:
@@ -110,16 +110,16 @@ print(f'PLCC: {plcc: .4f}, SRCC: {srcc: .4f}, KRCC: {krcc: .4f}')
 # Evaluate TID2013
 pred_scores = []
 pred_scores_path = [
-    'TID2013 scores_record/1.1.7 pred_scores.pickle',
-    'TID2013 scores_record/1.3.2 pred_scores.pickle',
-    'TID2013 scores_record/1.5.1 pred_scores.pickle',
-    'TID2013 scores_record/1.7.4 pred_scores.pickle',
-    'TID2013 scores_record/2.2.3.3 pred_scores.pickle',
-    'TID2013 scores_record/4.0.0 pred_scores.pickle',
-    'TID2013 scores_record/5.2.1 pred_scores.pickle',
+    'scores_record/TID2013/IQT-L_pred_scores.pickle',
+    'scores_record/TID2013/IQT-M_pred_scores.pickle',
+    'scores_record/TID2013/IQT-H_pred_scores.pickle',
+    'scores_record/TID2013/IQT-Mixed_pred_scores.pickle',
+    'scores_record/TID2013/Augmented_IQT-Mixed_pred_scores.pickle',
+    'scores_record/TID2013/DISTS-Tune_pred_scores.pickle',
+    'scores_record/TID2013/Augmented_DISTS-Tune_pred_scores.pickle',
 ]
 
-with open('TID2013 scores_record/gt_scores.pickle', 'rb') as handle:
+with open('scores_record/TID2013/gt_scores.pickle', 'rb') as handle:
     gt_scores = pickle.load(handle)
 
 for path in pred_scores_path:
