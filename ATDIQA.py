@@ -16,6 +16,8 @@ def loss_function(weights):
     return 3 - score
 
 
+# PIPAL dataset
+
 pred_scores = []
 pred_scores_path = [
     'scores_record/1.1.7 pred_scores.pickle',
@@ -60,6 +62,7 @@ end_time = time.time()
 
 print(f'Execution time: {int((end_time - begin_time) // 3600)}:{int((end_time - begin_time) // 60)}:{int((end_time - begin_time) % 60)}')
 
+print('PIPAL')
 for mode in ['train', 'val', 'test']:
     plcc, srcc, krcc = calculate_correlation_coefficient(
         gt_scores[mode],
@@ -67,3 +70,67 @@ for mode in ['train', 'val', 'test']:
     )
 
     print(f'{mode} PLCC:{plcc: .4f}, SRCC:{srcc: .4f}, KRCC:{krcc: .4f}')
+
+# Evaluate LIVE
+pred_scores = []
+pred_scores_path = [
+    'LIVE scores_record/1.1.7 pred_scores.pickle',
+    'LIVE scores_record/1.3.2 pred_scores.pickle',
+    'LIVE scores_record/1.5.1 pred_scores.pickle',
+    'LIVE scores_record/1.7.4 pred_scores.pickle',
+    'LIVE scores_record/4.0.0 pred_scores.pickle',
+]
+
+with open('LIVE scores_record/gt_scores.pickle', 'rb') as handle:
+    gt_scores = pickle.load(handle)
+
+for path in pred_scores_path:
+    with open(path, 'rb') as handle:
+        pred_scores.append(pickle.load(handle))
+
+pred_scores = tuple(pred_scores)
+
+weight_avg_pred_scores = np.zeros(pred_scores[0].size)
+
+for scores, weight in zip(pred_scores, best_weights):
+    weight_avg_pred_scores += scores * (weight / sum(best_weights))
+
+plcc, srcc, krcc = calculate_correlation_coefficient(
+    gt_scores,
+    weight_avg_pred_scores
+)
+
+print('LIVE')
+print(f'PLCC: {plcc: .4f}, SRCC: {srcc: .4f}, KRCC: {krcc: .4f}')
+
+# Evaluate TID2013
+pred_scores = []
+pred_scores_path = [
+    'TID2013 scores_record/1.1.7 pred_scores.pickle',
+    'TID2013 scores_record/1.3.2 pred_scores.pickle',
+    'TID2013 scores_record/1.5.1 pred_scores.pickle',
+    'TID2013 scores_record/1.7.4 pred_scores.pickle',
+    'TID2013 scores_record/4.0.0 pred_scores.pickle',
+]
+
+with open('TID2013 scores_record/gt_scores.pickle', 'rb') as handle:
+    gt_scores = pickle.load(handle)
+
+for path in pred_scores_path:
+    with open(path, 'rb') as handle:
+        pred_scores.append(pickle.load(handle))
+
+pred_scores = tuple(pred_scores)
+
+weight_avg_pred_scores = np.zeros(pred_scores[0].size)
+
+for scores, weight in zip(pred_scores, best_weights):
+    weight_avg_pred_scores += scores * (weight / sum(best_weights))
+
+plcc, srcc, krcc = calculate_correlation_coefficient(
+    gt_scores,
+    weight_avg_pred_scores
+)
+
+print('TID2013')
+print(f'PLCC: {plcc: .4f}, SRCC: {srcc: .4f}, KRCC: {krcc: .4f}')
