@@ -33,6 +33,9 @@ class LIVE(Dataset):
         df = pd.DataFrame({'ref_img': refnames_all[0], 'dist_img': dist_path_list, 'dmos': dmos[0]})
         df['ref_img'] = df['ref_img'].apply(lambda x: os.path.join(root_dir, f'refimgs/{x[0]}'))
         df['dist_img'] = df['dist_img'].apply(lambda x: os.path.join(root_dir, f'{x}'))
+        # for convenience
+        df['cat'] = 0  # should be changed to its category number
+        df['score'] = 0  # should be changed to its normalization score
 
         self.df = df
         self.img_size = img_size
@@ -49,7 +52,7 @@ class LIVE(Dataset):
 
         ref_img, dist_img = self.transform(ref_img, dist_img)
 
-        return ref_img, dist_img, self.df['dmos'].iloc[idx]
+        return ref_img, dist_img, self.df['score'].iloc[idx], self.df['cat'].iloc[idx], self.df['dmos'].iloc[idx]
 
     def transform(self, ref_img, dist_img):
         ref_imgs = TF.five_crop(ref_img, self.img_size)
@@ -73,6 +76,9 @@ class TID2013(Dataset):
 
         df['ref_img'] = df['ref_img'].apply(lambda x: os.path.join(root_dir, 'reference_images', f'{x}'))
         df['dist_img'] = df['dist_img'].apply(lambda x: os.path.join(root_dir, 'distorted_images', f'{x}'))
+        # for convenience
+        df['cat'] = 0  # should be changed to its category number
+        df['score'] = 0  # should be changed to its normalization score
 
         self.df = df
         self.img_size = img_size
@@ -89,7 +95,7 @@ class TID2013(Dataset):
 
         ref_img, dist_img = self.transform(ref_img, dist_img)
 
-        return ref_img, dist_img, self.df['mos'].iloc[idx]
+        return ref_img, dist_img, self.df['score'].iloc[idx], self.df['cat'].iloc[idx], self.df['mos'].iloc[idx]
 
     def transform(self, ref_img, dist_img):
         ref_imgs = TF.five_crop(ref_img, self.img_size)
