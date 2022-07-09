@@ -1,11 +1,11 @@
 DATASETS:
   BATCH_SIZE: 16
-  IMG_SIZE: (256, 256)
+  IMG_SIZE: (192, 192)
   NUM_WORKERS: 6
 #  ROOT_DIR: ../data/PIPAL(processed)
 MODEL:
   BACKBONE:
-    FEAT_LEVEL: high
+    FEAT_LEVEL: mixed
     FIXED: False
   #    NAME: InceptionResNetV2
   #  EVALUATOR: IQT
@@ -15,27 +15,26 @@ MODEL:
     #    FEAT_DIM: 1024
     HEAD_DIM: 512
     #    MHA_NUM_HEADS: 4
-    TRANSFORMER_DIM: 512
+    TRANSFORMER_DIM: 256
     TRANSFORMER_LAYERS: 2
 TRAIN:
   #  CRITERION_WEIGHT:
   #    ERRD_FAKE_ADV: 1.0
-  #    ERRD_FAKE_CLF: 1.0
+  #    ERRD_FAKE_CLF: 0.01
   #    ERRD_REAL_ADV: 1.0
-  #    ERRD_REAL_CLF: 1.0
+  #    ERRD_REAL_CLF: 0.1
   #    ERRD_REAL_QUAL: 1.0
-  #    ERRG_ADV: 1.0
-  #    ERRG_CLF: 1.0
-  #    ERRG_CONT: 1.0
+  #    ERRG_ADV: 0.01
+  #    ERRG_CLF: 0.05
+  #    ERRG_CONT: 0.1
   #    ERRG_QUAL: 1.0
   LEARNING_RATE:
-    NET_D: 2e-04
-  #    NET_G: 5e-05
-  LOG_DIR: experiments/1.5.3/logs
+    NET_D: 5e-05
+  LOG_DIR: experiments/Aug_IQT-Mixed_phase2/logs
   NUM_EPOCHS: 200
-  PHASE: 0
-  #  RESUME:
-  #    NET_D:
-  #    NET_G:
+  PHASE: 2
+  RESUME:
+    NET_D: experiments/Aug_IQT-Mixed_phase1/models/netD_epoch200.pth
+    NET_G: experiments/Aug_IQT-Mixed_phase1/models/netG_epoch200.pth
   #  START_EPOCH: 0
-  WEIGHT_DIR: experiments/1.5.3/models
+  WEIGHT_DIR: experiments/Aug_IQT-Mixed_phase2/models

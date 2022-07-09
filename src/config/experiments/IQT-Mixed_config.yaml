@@ -5,7 +5,7 @@ DATASETS:
 #  ROOT_DIR: ../data/PIPAL(processed)
 MODEL:
   BACKBONE:
-    FEAT_LEVEL: medium
+    FEAT_LEVEL: mixed
     FIXED: False
   #    NAME: InceptionResNetV2
   #  EVALUATOR: IQT
@@ -15,7 +15,7 @@ MODEL:
     #    FEAT_DIM: 1024
     HEAD_DIM: 128
     #    MHA_NUM_HEADS: 4
-    TRANSFORMER_DIM: 256
+    TRANSFORMER_DIM: 128
     TRANSFORMER_LAYERS: 1
 TRAIN:
   #  CRITERION_WEIGHT:
@@ -29,13 +29,13 @@ TRAIN:
   #    ERRG_CONT: 1.0
   #    ERRG_QUAL: 1.0
   LEARNING_RATE:
-    NET_D: 2e-04
+    NET_D: 1e-04
   #    NET_G: 5e-05
-  LOG_DIR: experiments/1.3.6/logs
+  LOG_DIR: experiments/IQT-Mixed/logs
   NUM_EPOCHS: 200
   PHASE: 0
-  RESUME:
-    NET_D: experiments/1.3.6/models/netD_epoch108.pth
+  #  RESUME:
+  #    NET_D:
   #    NET_G:
-  START_EPOCH: 108
-  WEIGHT_DIR: experiments/1.3.6/models
+  #  START_EPOCH: 0
+  WEIGHT_DIR: experiments/IQT-Mixed/models

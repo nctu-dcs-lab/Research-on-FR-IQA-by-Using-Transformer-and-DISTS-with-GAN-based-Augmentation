@@ -1,11 +1,11 @@
 DATASETS:
   BATCH_SIZE: 16
-  IMG_SIZE: (256, 256)
+  IMG_SIZE: (192, 192)
   NUM_WORKERS: 6
 #  ROOT_DIR: ../data/PIPAL(processed)
 MODEL:
   BACKBONE:
-    FEAT_LEVEL: high
+    FEAT_LEVEL: medium
     FIXED: False
   #    NAME: InceptionResNetV2
   #  EVALUATOR: IQT
@@ -31,11 +31,11 @@ TRAIN:
   LEARNING_RATE:
     NET_D: 2e-04
   #    NET_G: 5e-05
-  LOG_DIR: experiments/1.5.2/logs
+  LOG_DIR: experiments/IQT-M/logs
   NUM_EPOCHS: 200
   PHASE: 0
   #  RESUME:
   #    NET_D:
   #    NET_G:
   #  START_EPOCH: 0
-  WEIGHT_DIR: experiments/1.5.2/models
+  WEIGHT_DIR: experiments/IQT-M/models

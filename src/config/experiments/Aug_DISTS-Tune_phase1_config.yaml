@@ -31,11 +31,11 @@ TRAIN:
   LEARNING_RATE:
     NET_D: 1e-04
     NET_G: 5e-04
-  LOG_DIR: experiments/5.0.0/logs
+  LOG_DIR: experiments/Aug_DISTS-Tune_phase1/logs
   NUM_EPOCHS: 200
   PHASE: 1
   #  RESUME:
   #    NET_D:
   #    NET_G:
   #  START_EPOCH: 0
-  WEIGHT_DIR: experiments/5.0.0/models
+  WEIGHT_DIR: experiments/Aug_DISTS-Tune_phase1/models
