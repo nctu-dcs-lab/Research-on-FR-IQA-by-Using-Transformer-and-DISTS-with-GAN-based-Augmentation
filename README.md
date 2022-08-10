@@ -48,11 +48,17 @@ Download the dataset from the following website.
 
 ## Prepare Data and Code
 
+I split PIPAL Public Training Set into training, validation, and test sets by splitting "Train_Label" into "Train_Label", "Val_Label" and "Test_Label", and placed them into "PIPAL(processed)" directory, which is currently provided to DCS Lab member only.
 After downloading and extracting, the data directory is structured as:
 
 ```text
 +- data
-    +- PIPAL
+    +- PIPAL(processed)
+      +- Dist
+      +- Ref
+      +- Test_Label
+      +- Train_Label
+      +- Val_Label
     +- LIVE
     +- TID2013
 +- code
