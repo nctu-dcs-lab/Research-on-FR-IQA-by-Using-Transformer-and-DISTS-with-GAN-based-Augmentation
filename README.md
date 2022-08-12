@@ -171,3 +171,33 @@ Assume that the weights of IQT-L are saved at **experiments/IQT-L/models/netD_ep
 ```shell
 python eval.py --config src/config/experiments/IQT-L_config.yaml --netD_path experiments/IQT-L/models/netD_epoch200.pth --dataset LIVE
 ```
+
+## Prediction
+
+If you need the help of pred.py, you can use the following instruction.
+
+```shell
+python pred.py --help
+```
+
+Get prediction (pickle file) with specific configuration file and the path of model:
+
+```shell
+python pred.py --config <config_path> --netD_path <netD_path> --output <pkl_file_name> --dataset <dataset_name>
+```
+
+* <config_path> is the path to the configuration file of model.
+* <netD_path> is the path of the weights of FR-IQA.
+* <pkl_file_name> is the file name of the prediction (pickle file).
+* <dataset_name> can be chose from 'PIPAL', 'LIVE' and 'TID2013'.
+
+### Example
+
+Take output the predict scores of IQT-L on LIVE for example.
+Assume that the weights of IQT-L are saved at **experiments/IQT-L/models/netD_epoch200.pth**.
+
+```shell
+python pred.py --config src/config/experiments/IQT-L_config.yaml --netD_path experiments/IQT-L/models/netD_epoch200.pth --output IQT-L --dataset LIVE
+```
+
+You will get a file named IQT-L, which is a pickle file.
